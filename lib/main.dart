@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -300,6 +298,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       if (mounted) setState(() {});
     });
 
+    // Inicjalizacja kontrolera animacji profilu
     _profileSlideController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -308,11 +307,13 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     _profileSlideAnimation = Tween<double>(
       begin: -357.0,
       end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _profileSlideController,
-      curve: Curves.easeOut,
-      reverseCurve: Curves.easeIn,
-    ));
+    ).animate(
+      CurvedAnimation(
+        parent: _profileSlideController,
+        curve: Curves.easeOut,
+        reverseCurve: Curves.easeIn,
+      ),
+    );
 
     _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
       if (mounted) {
@@ -352,7 +353,18 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       reverseCurve: Curves.easeIn,
     ));
 
-    // Usunięto podwójną inicjalizację kontrolera animacji profilu
+    _profileSlideController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _profileSlideAnimation = Tween<double>(
+      begin: -357.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _profileSlideController,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    ));
 
     _initializeWebView();
 
@@ -1239,7 +1251,36 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     });
   }
 
-  // Te metody zostały przeniesione do innej części kodu
+  void _showProfileOverlay() {
+    setState(() {
+      isProfileOverlayVisible = true;
+    });
+    // Rozpocznij animację pokazywania
+    _profileSlideController.forward();
+
+    // Nasłuchuj MQTT aby uzyskać aktualny kod
+    _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
+      if (mounted) {
+        setState(() {
+          profileCode = message;
+        });
+      }
+    });
+  }
+
+  void _closeProfileOverlay() {
+    // Anuluj subskrypcję MQTT przed zamknięciem overlaya
+    _mqttService.unsubscribeFromTopic(profileCodeTopic);
+
+    // Animuj zamknięcie overlaya
+    _profileSlideController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          isProfileOverlayVisible = false;
+        });
+      }
+    });
+  }
 
   Widget buildLanguageOverlay() {
     return GestureDetector(
@@ -1311,17 +1352,18 @@ class _FixedSizeAppState extends State<FixedSizeApp>
               width: width * 0.6,
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 25,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 18,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
             Text(
               '${level.toInt()}%',
               textAlign: TextAlign.right,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 25,
                 fontFamily: 'Roboto',
@@ -1509,7 +1551,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
               width: width * 0.6,
               child: Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
                   fontSize: 18,
                   fontFamily: 'Roboto',
@@ -1520,7 +1562,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             Text(
               '${temperature.toStringAsFixed(1)}°C',
               textAlign: TextAlign.right,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 25,
                 fontFamily: 'Roboto',
@@ -1558,7 +1600,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                 showLabels: false,
                 showTicks: false,
                 orientation: LinearGaugeOrientation.horizontal,
-                axisTrackStyle: const LinearAxisTrackStyle(
+                axisTrackStyle: LinearAxisTrackStyle(
                   thickness: 12.59,
                   borderWidth: 0,
                   color: Colors.transparent,
@@ -1635,7 +1677,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           // Oryginalne wymiary
           final buttonWidth = 153 * buttonScale;
           final buttonHeight = 147 * buttonScale;
-          // Zmienna buttonSpacing nie jest już potrzebna
+          final buttonSpacing = 79 * buttonScale;
 
           // Wymiary paneli bocznych
           final sideContainerWidth = 540 * buttonScale;
@@ -1690,13 +1732,13 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   child: Container(
                     width: 1920 * buttonScale,
                     height: 162 * buttonScale,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage("assets/images/Outline.png"),
                         fit: BoxFit.fill,
                       ),
                     ),
-                    child: const Stack(),
+                    child: Stack(),
                   ),
                 ),
 
@@ -1742,8 +1784,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                       setState(() {
                         isProfileOverlayVisible = true;
                       });
-                      // Uruchamiamy animację pokazującą overlay profilu
-                      _profileSlideController.forward();
                     },
                     child: Container(
                       width: 175 * buttonScale,
@@ -1769,135 +1809,109 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   ),
                 ),
                 // Profile Overlay
-                // Profile overlay with backdrop
                 if (isProfileOverlayVisible)
-                  Positioned.fill(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Stack(
-                        children: [
-                          // Backdrop for closing on tap outside
-                          GestureDetector(
-                            onTap: () {
-                              _profileSlideController.reverse().then((_) {
-                                setState(() {
-                                  isProfileOverlayVisible = false;
-                                });
-                              });
-                            },
-                            child: Container(
-                              color: Colors.black.withOpacity(0.5),
-                            ),
-                          ),
-                          // Sliding centered profile dialog
-                          Center(
-                            child: Transform.translate(
-                              offset: Offset(0, _profileSlideAnimation.value),
-                              child: Material(
-                                color: Colors.transparent,
-                                elevation: 8,
-                                borderRadius: BorderRadius.circular(34),
-                                child: Container(
-                                  width: 635,
-                                  height: 360,
-                                  decoration: const ShapeDecoration(
-                                    color: Color(0xFF262626),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(34)),
-                                    ),
-                                  ),
-
-                                  child: Stack(
-                                    children: [
-                                      const Positioned(
-                                        left: 56,
-                                        top: 56,
-                                        child: SizedBox(
-                                          width: 518,
-                                          child: Text(
-                                            'Aby się zalogować, \nwpisz poniższy kod w aplikacji mobilnej',
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 28,
-                                        fontFamily: 'Roboto',
-                                        fontWeight: FontWeight.w700,
-                                        height: 1.21,
-                                        letterSpacing: -0.40,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 220,
-                                  top: 159,
-                                  child: Text(
-                                    profileCode,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 48,
-                                      fontFamily: 'Roboto',
-                                      fontWeight: FontWeight.w600,
-                                      height: 0.71,
-                                      letterSpacing: -0.40,
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 32,
-                                  top: 239,
-                                  child: Container(
-                                    width: 567,
-                                    height: 81,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(15),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Color(0x3F000000),
-                                          blurRadius: 4,
-                                          offset: Offset(0, 4),
-                                          spreadRadius: 0,
-                                        )
-                                      ],
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        _profileSlideController.reverse().then((_) {
-                                          if (mounted) {
-                                            setState(() {
-                                              isProfileOverlayVisible = false;
-                                            });
-                                          }
-                                        });
-                                      },
-                                      child: const Center(
-                                        child: Text(
-                                          'OK',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 34,
-                                            fontFamily: 'Roboto',
-                                            fontWeight: FontWeight.w600,
-                                            height: 1.21,
-                                            letterSpacing: 0.60,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                  Positioned(
+                    top: _profileSlideAnimation.value,
+                    left: (width - 631) / 2,
+                    child: GestureDetector(
+                      onTap: () => null, // Prevent clicks from passing through
+                      child: Container(
+                        width: 631,
+                        height: 357,
+                        decoration: const ShapeDecoration(
+                          color: Color(0xFF262626),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(34),
+                              bottomRight: Radius.circular(34),
                             ),
                           ),
                         ),
+                        child: Stack(
+                          children: [
+                            Positioned(
+                              left: 56,
+                              top: 56,
+                              child: SizedBox(
+                                width: 518,
+                                child: Text(
+                                  'Aby się zalogować, \nwpisz poniższy kod w aplikacji mobilnej',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 28,
+                                    fontFamily: 'Roboto',
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.21,
+                                    letterSpacing: -0.40,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 220,
+                              top: 159,
+                              child: Text(
+                                profileCode,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 48,
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.w600,
+                                  height: 0.71,
+                                  letterSpacing: -0.40,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 32,
+                              top: 239,
+                              child: Container(
+                                width: 567,
+                                height: 81,
+                                decoration: BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(0x3F000000),
+                                      blurRadius: 4,
+                                      offset: Offset(0, 4),
+                                      spreadRadius: 0,
+                                    )
+                                  ],
+                                ),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    _profileSlideController.reverse().then((_) {
+                                      if (mounted) {
+                                        setState(() {
+                                          isProfileOverlayVisible = false;
+                                        });
+                                      }
+                                    });
+                                  },
+                                  child: Center(
+                                    child: Text(
+                                      'OK',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 34,
+                                        fontFamily: 'Roboto',
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.21,
+                                        letterSpacing: 0.60,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                
+                  ),
                 Positioned(
                   bottom: verticalOffset + height * 0.025,
                   left: horizontalOffset + width * 0.015,
@@ -1952,7 +1966,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         Positioned(
                           left: 40 * buttonScale,
                           top: 50 * buttonScale,
-                          child: SizedBox(
+                          child: Container(
                             width: sideContainerWidth -
                                 80 * buttonScale, // Dostosowana szerokość
                             child: Column(
@@ -2038,7 +2052,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         Positioned(
                           left: 29 * buttonScale,
                           top: 47 * buttonScale,
-                          child: SizedBox(
+                          child: Container(
                             width: 220.14 * buttonScale,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -2066,7 +2080,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         Positioned(
                           left: 291.61 * buttonScale,
                           top: 47 * buttonScale,
-                          child: SizedBox(
+                          child: Container(
                             width: 220.14 * buttonScale,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -2139,7 +2153,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         Positioned(
                           left: 29 * buttonScale,
                           top: 47 * buttonScale,
-                          child: SizedBox(
+                          child: Container(
                             width: 220.14 * buttonScale,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -2165,7 +2179,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         Positioned(
                           left: 291.61 * buttonScale,
                           top: 47 * buttonScale,
-                          child: SizedBox(
+                          child: Container(
                             width: 220.14 * buttonScale,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -2238,7 +2252,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     },
                                   ),
                                 ),
-                              ),
+                              );
                             },
                           ),
                         ),
@@ -2675,10 +2689,9 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
                                   InkWell(
-                                    onTap: () {
-                                      double newVolume = volume - 0.05 < 0.0 ? 0.0 : volume - 0.05;
-                                      updateVolume(newVolume);
-                                    },
+                                    onTap: () => updateVolume(
+                                      volume - 0.05 < 0.0 ? 0.0 : volume - 0.05,
+                                    ),
                                     child: Icon(
                                       Icons.volume_down_rounded,
                                       color: const Color.fromARGB(255, 0, 0, 0),
@@ -2696,10 +2709,9 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     ),
                                   ),
                                   InkWell(
-                                    onTap: () {
-                                      double newVolume = volume + 0.05 > 1.0 ? 1.0 : volume + 0.05;
-                                      updateVolume(newVolume);
-                                    },
+                                    onTap: () => updateVolume(
+                                      volume + 0.05 > 1.0 ? 1.0 : volume + 0.05,
+                                    ),
                                     child: Icon(
                                       Icons.volume_up_rounded,
                                       color: const Color.fromARGB(255, 0, 0, 0),
@@ -2817,7 +2829,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   child: Container(
                     width: 193.22 * buttonScale,
                     height: 83 * buttonScale,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage("assets/images/logo.png"),
                         fit: BoxFit.cover,
@@ -2844,6 +2856,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                     ),
                   ),
                 ),
+
                 // Elementy overlay
                 if (isAmbientOverlayVisible)
                   Positioned.fill(
@@ -2877,6 +2890,11 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                         fontSize: fontSize,
                                         fontWeight: FontWeight.bold,
                                       ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close,
+                                          color: Colors.white),
+                                      onPressed: _closeSettingsOverlay,
                                     ),
                                   ],
                                 ),
@@ -3514,12 +3532,12 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                               labelStyle: const TextStyle(
                                                   color: Colors.white70),
                                               enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                  UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.white54),
                                               ),
                                               focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                  UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.white),
                                               ),
@@ -3566,12 +3584,12 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                               labelStyle: const TextStyle(
                                                   color: Colors.white70),
                                               enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                  UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.white54),
                                               ),
                                               focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                  UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.white),
                                               ),
@@ -3612,12 +3630,12 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                               labelStyle: const TextStyle(
                                                   color: Colors.white70),
                                               enabledBorder:
-                                                  const UnderlineInputBorder(
+                                                  UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.white54),
                                               ),
                                               focusedBorder:
-                                                  const UnderlineInputBorder(
+                                                  UnderlineInputBorder(
                                                 borderSide: BorderSide(
                                                     color: Colors.white),
                                               ),
@@ -3810,7 +3828,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                   LanguageService.translate(
                                       'volume_notification'),
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 24,
                                     fontFamily: 'SourceSansPro-Regular',
@@ -3895,7 +3913,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                             LanguageService.translate(
                                                 'night_mode_warning'),
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: Colors.white,
                                               fontSize: 24,
                                               fontFamily: 'Roboto',
@@ -3916,8 +3934,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                             LanguageService.translate(
                                                 'continue_question'),
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              color: Color(0xFFFF0000),
+                                            style: TextStyle(
+                                              color: const Color(0xFFFF0000),
                                               fontSize: 24,
                                               fontFamily: 'Roboto',
                                               fontWeight: FontWeight.w600,
@@ -3939,7 +3957,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                                 backgroundColor:
                                                     Colors.transparent,
                                                 foregroundColor: Colors.white,
-                                                minimumSize: const Size(290, 60),
+                                                minimumSize: Size(290, 60),
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(10),
@@ -4753,7 +4771,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   }
 
   Widget buildProfileOverlay() {
-    return SizedBox(
+    return Container(
       width: 631,
       height: 357,
       child: Stack(
@@ -4764,8 +4782,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             child: Container(
               width: 631,
               height: 357,
-              decoration: const ShapeDecoration(
-                color: Color(0xFF262626),
+              decoration: ShapeDecoration(
+                color: const Color(0xFF262626),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(34),
@@ -4775,7 +4793,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
               ),
             ),
           ),
-          const Positioned(
+          Positioned(
             left: 56,
             top: 56,
             child: SizedBox(
@@ -4800,7 +4818,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             child: Text(
               profileCode,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.white,
                 fontSize: 48,
                 fontFamily: 'Roboto',
@@ -4816,7 +4834,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             child: Container(
               width: 567,
               height: 81,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
                     color: Color(0x3F000000),
@@ -4826,27 +4844,27 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   )
                 ],
               ),
-              child: const Stack(
+              child: Stack(
                 children: [
-                  const Positioned(
+                  Positioned(
                     left: 78.64,
                     top: 20,
-                    child: const SizedBox(
+                    child: SizedBox(
                       width: 403.52,
-                      child: const Text(
+                      child: Text(
                         'OK',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.black,
                           fontSize: 34,
                           fontFamily: 'Roboto',
                           fontWeight: FontWeight.w600,
                           height: 1.21,
                           letterSpacing: 0.60,
-                        ), // TextStyle
-                      ), // Text
-                    ), // SizedBox
-                  ), // Positioned
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
