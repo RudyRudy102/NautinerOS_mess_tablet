@@ -1895,9 +1895,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         ),
                       ),
                     ),
-                        ],
-                      ),
-                    ),
+                  ],
+                ),
                 
                 Positioned(
                   bottom: verticalOffset + height * 0.025,
@@ -2239,7 +2238,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     },
                                   ),
                                 ),
-                              );
+                              ),
                             },
                           ),
                         ),
@@ -2676,9 +2675,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
                                   InkWell(
-                                    onTap: () => updateVolume(
-                                      volume - 0.05 < 0.0 ? 0.0 : volume - 0.05,
-                                    ),
+                                    onTap: () {
+                                      double newVolume = volume - 0.05 < 0.0 ? 0.0 : volume - 0.05;
+                                      updateVolume(newVolume);
+                                    },
                                     child: Icon(
                                       Icons.volume_down_rounded,
                                       color: const Color.fromARGB(255, 0, 0, 0),
@@ -2696,9 +2696,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     ),
                                   ),
                                   InkWell(
-                                    onTap: () => updateVolume(
-                                      volume + 0.05 > 1.0 ? 1.0 : volume + 0.05,
-                                    ),
+                                    onTap: () {
+                                      double newVolume = volume + 0.05 > 1.0 ? 1.0 : volume + 0.05;
+                                      updateVolume(newVolume);
+                                    },
                                     child: Icon(
                                       Icons.volume_up_rounded,
                                       color: const Color.fromARGB(255, 0, 0, 0),
@@ -2843,7 +2844,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                     ),
                   ),
                 ),
-
                 // Elementy overlay
                 if (isAmbientOverlayVisible)
                   Positioned.fill(
