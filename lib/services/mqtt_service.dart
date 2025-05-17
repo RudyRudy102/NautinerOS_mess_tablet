@@ -17,17 +17,6 @@ class MQTTService {
   String button5Topic = 'home/button5/light';
   String button6Topic = 'home/button6/light';
 
-  // Inicjalizacja klienta z domyślnymi wartościami
-  MqttServerClient client = MqttServerClient('', '');
-
-  final _stateController = StreamController<Map<String, bool>>.broadcast();
-  bool _isConnecting = false;
-
-  Stream<Map<String, bool>> get stateStream => _stateController.stream;
-
-  // Dodaj mapę callbacków
-  final Map<String, Function(String, String)> _topicCallbacks = {};
-
   String get host => _broker;
   int get port => _port;
   String get username => _username;
@@ -35,38 +24,26 @@ class MQTTService {
 
   void updateHost(String newHost) {
     _broker = newHost;
-    // Rozłącz obecne połączenie tylko jeśli istnieje
-    try {
-      if (client.connectionStatus?.state == MqttConnectionState.connected) {
-        client.disconnect();
-      }
-    } catch (e) {
-      print('MQTT client not initialized yet or error: $e');
+    // Rozłącz obecne połączenie
+    if (client.connectionStatus?.state == MqttConnectionState.connected) {
+      client.disconnect();
     }
   }
 
   void updatePort(int newPort) {
     _port = newPort;
-    // Rozłącz obecne połączenie tylko jeśli istnieje
-    try {
-      if (client.connectionStatus?.state == MqttConnectionState.connected) {
-        client.disconnect();
-      }
-    } catch (e) {
-      print('MQTT client not initialized yet or error: $e');
+    // Rozłącz obecne połączenie
+    if (client.connectionStatus?.state == MqttConnectionState.connected) {
+      client.disconnect();
     }
   }
 
   void updateCredentials(String username, String password) {
     _username = username;
     _password = password;
-    // Rozłącz obecne połączenie tylko jeśli istnieje
-    try {
-      if (client.connectionStatus?.state == MqttConnectionState.connected) {
-        client.disconnect();
-      }
-    } catch (e) {
-      print('MQTT client not initialized yet or error: $e');
+    // Rozłącz obecne połączenie
+    if (client.connectionStatus?.state == MqttConnectionState.connected) {
+      client.disconnect();
     }
   }
 
@@ -94,18 +71,15 @@ class MQTTService {
         .join();
   }
 
-  // Callback methods used in connect()
-  void _onConnected() {
-    print('Connected to MQTT broker');
-  }
+  // Inicjalizacja klienta odkłada się do momentu connect()
+  late MqttServerClient client;
+  final _stateController = StreamController<Map<String, bool>>.broadcast();
+  bool _isConnecting = false;
 
-  void _onDisconnected() {
-    print('Disconnected from MQTT broker');
-  }
+  Stream<Map<String, bool>> get stateStream => _stateController.stream;
 
-  void _pong() {
-    print('Ping response received');
-  }
+  // Dodaj mapę callbacków
+  final Map<String, Function(String, String)> _topicCallbacks = {};
 
   Future<bool> connect() async {
     if (_isConnecting) {
@@ -156,8 +130,8 @@ class MQTTService {
         print('Subscribed to light state topics');
 
         // Listen to updates
-        client.updates!
-            .listen((List<MqttReceivedMessage<MqttMessage>> messages) {
+        client.updates
+            ?.listen((List<MqttReceivedMessage<MqttMessage>> messages) {
           _onMessageReceived(messages);
         });
 
@@ -214,48 +188,60 @@ class MQTTService {
     }
   }
 
+  void _onConnected() {
+    print('Connected to MQTT broker');
+  }
+
+  void _onDisconnected() {
+    print('Disconnected from MQTT broker');
+  }
+
+  void _pong() {
+    print('Ping response received');
+  }
+
   Future<bool> sendCommand(int deviceId, int state) async {
-    try {
-      if (client.connectionStatus == null ||
-          client.connectionStatus!.state != MqttConnectionState.connected) {
-        print('MQTT not connected. Attempting to reconnect...');
-        final connected = await connect();
-        if (!connected) {
-          print('Failed to reconnect to MQTT broker');
-          return false;
-        }
-      }
-
-      String topic;
-      switch (deviceId) {
-        case 1:
-          topic = '$cabinLightTopic/set';
-          break;
-        case 2:
-          topic = '$nightLightTopic/set';
-          break;
-        case 3:
-          topic = '$ambientLightTopic/set';
-          break;
-        case 4:
-          topic = '$button4Topic/set';
-          break;
-        case 5:
-          topic = '$button5Topic/set';
-          break;
-        case 6:
-          topic = '$button6Topic/set';
-          break;
-        default:
-          print('Invalid device ID: $deviceId');
-          return false;
-      }
-
-      if (state != 1 && state != 0) {
-        print('Invalid state: $state. Only 1 or 0 are allowed.');
+    if (client.connectionStatus == null ||
+        client.connectionStatus!.state != MqttConnectionState.connected) {
+      print('MQTT not connected. Attempting to reconnect...');
+      final connected = await connect();
+      if (!connected) {
+        print('Failed to reconnect to MQTT broker');
         return false;
       }
+    }
 
+    String topic;
+    switch (deviceId) {
+      case 1:
+        topic = '$cabinLightTopic/set';
+        break;
+      case 2:
+        topic = '$nightLightTopic/set';
+        break;
+      case 3:
+        topic = '$ambientLightTopic/set';
+        break;
+      case 4:
+        topic = '$button4Topic/set';
+        break;
+      case 5:
+        topic = '$button5Topic/set';
+        break;
+      case 6:
+        topic = '$button6Topic/set';
+        break;
+      default:
+        print('Invalid device ID: $deviceId');
+        return false;
+    }
+
+    if (state != 1 && state != 0) {
+      print('Invalid state: $state. Only 1 or 0 are allowed.');
+      return false;
+    }
+
+    try {
       final builder = MqttClientPayloadBuilder();
       builder.addString(state.toString());
 
@@ -278,7 +264,7 @@ class MQTTService {
       print('Command sent successfully to $topic: $state');
       return true;
     } catch (e) {
-      print('Error sending command to topic: $e');
+      print('Error sending command to topic $topic: $e');
       return false;
     }
   }
@@ -286,15 +272,11 @@ class MQTTService {
   // Dodaj metodę do subskrybowania tematów z callback
   void subscribeToTopic(
       String topic, Function(String topic, String message) callback) {
-    try {
-      if (client.connectionStatus?.state == MqttConnectionState.connected) {
-        client.subscribe(topic, MqttQos.atLeastOnce);
-      }
+    if (client.connectionStatus?.state == MqttConnectionState.connected) {
+      client.subscribe(topic, MqttQos.atLeastOnce);
 
       // Jeśli to nowy temat, ustaw callback
       _topicCallbacks[topic] = callback;
-    } catch (e) {
-      print('Error subscribing to topic $topic: $e');
     }
   }
 
