@@ -4828,25 +4828,25 @@ class _FixedSizeAppState extends State<FixedSizeApp>
               ),
               child: const Stack(
                 children: [
-                  Positioned(
+                  const Positioned(
                     left: 78.64,
                     top: 20,
-                    child: SizedBox(
+                    child: const SizedBox(
                       width: 403.52,
-                      child: Text(
+                      child: const Text(
                         'OK',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.black,
                           fontSize: 34,
                           fontFamily: 'Roboto',
                           fontWeight: FontWeight.w600,
                           height: 1.21,
                           letterSpacing: 0.60,
-                        ),
-                      ),
-                    ),
-                  ),
+                        ), // TextStyle
+                      ), // Text
+                    ), // SizedBox
+                  ), // Positioned
                 ],
               ),
             ),
