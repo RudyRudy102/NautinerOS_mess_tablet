@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+
 import 'models/weather_model.dart';
 import 'services/weather_service.dart';
 import 'services/volumio_service.dart';
 import 'services/wled_service.dart';
-import 'services/mqtt_service.dart';
+import 'services/mqtt_service_fixed.dart';
 import 'screens/splash_screen.dart';
+import 'widgetpanels.dart';
+import 'sensors.dart';
+import 'headerelements.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'dart:math' as math;
@@ -125,7 +127,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   bool isSecondLampActive = false;
 
   bool isProfileOverlayVisible = false;
-  String profileCode = '3467854';
+  String profileCode = '213742069';
   String profileCodeTopic = 'nautiner/profile/code';
   late AnimationController _profileSlideController;
   late Animation<double> _profileSlideAnimation;
@@ -168,6 +170,15 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   final MQTTService _mqttService = MQTTService();
   StreamSubscription? _mqttSubscription;
 
+  // Instancja do obsługi paneli widgetów
+  late WidgetPanels _widgetPanels;
+
+  // Instancja do obsługi paneli sensorów
+  late SensorPanels _sensorPanels;
+
+  // Instancja do obsługi elementów nagłówka
+  late HeaderElements _headerElements;
+
   bool isSettingsOverlayVisible = false;
   bool isPinPromptVisible = false;
   String enteredPin = '';
@@ -203,6 +214,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   final TextEditingController volumioController = TextEditingController();
   final TextEditingController wledController = TextEditingController();
   final TextEditingController wledSecondaryController = TextEditingController();
+  final TextEditingController profileCodeTopicController =
+      TextEditingController();
 
   bool isVolumeControlLocked = false;
   bool isVolumeNotificationVisible = false;
@@ -410,6 +423,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     battery24VVoltageTopicController.text = battery24VVoltageTopic;
     battery48VLevelTopicController.text = battery48VLevelTopic;
     battery48VVoltageTopicController.text = battery48VVoltageTopic;
+    profileCodeTopicController.text = profileCodeTopic;
 
     _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
       if (mounted) {
@@ -423,6 +437,179 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     _updateTime();
     _clockTimer =
         Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+
+    // Inicjalizacja paneli widgetów
+    _initializeWidgetPanels();
+
+    // Inicjalizacja paneli sensorów
+    _initializeSensorPanels();
+
+    // Inicjalizacja elementów nagłówka
+    _initializeHeaderElements();
+  }
+
+  void _initializeWidgetPanels() {
+    _widgetPanels = WidgetPanels(
+      currentAlbumArt: currentAlbumArt,
+      currentSongTitle: currentSongTitle,
+      currentSongArtist: currentSongArtist,
+      isPlaying: isPlaying,
+      volumioService: _volumioService,
+      getFullAlbumArtUrl: _getFullAlbumArtUrl,
+      buildDefaultAlbumArt: _buildDefaultAlbumArt,
+      togglePlayPause: togglePlayPause,
+      previousTrack: previousTrack,
+      nextTrack: nextTrack,
+      weatherData: weatherData,
+      isLoadingWeather: isLoadingWeather,
+      weatherError: weatherError,
+      showWindInBft: showWindInBft,
+      fetchWeatherData: _fetchWeatherData,
+      setShowWindInBft: (bool value) {
+        setState(() {
+          showWindInBft = value;
+        });
+      },
+      webViewController: webViewController,
+      webViewError: webViewError,
+      isWebViewLoading: isWebViewLoading,
+      initializeWebView: () {
+        setState(() {
+          isWebViewLoading = true;
+        });
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _initializeWebView();
+        });
+      },
+      syncInterfaceColor: syncInterfaceColor,
+      getInterfaceIconColor: getInterfaceIconColor,
+    );
+  }
+
+  void _updateWidgetPanels() {
+    _widgetPanels = WidgetPanels(
+      currentAlbumArt: currentAlbumArt,
+      currentSongTitle: currentSongTitle,
+      currentSongArtist: currentSongArtist,
+      isPlaying: isPlaying,
+      volumioService: _volumioService,
+      getFullAlbumArtUrl: _getFullAlbumArtUrl,
+      buildDefaultAlbumArt: _buildDefaultAlbumArt,
+      togglePlayPause: togglePlayPause,
+      previousTrack: previousTrack,
+      nextTrack: nextTrack,
+      weatherData: weatherData,
+      isLoadingWeather: isLoadingWeather,
+      weatherError: weatherError,
+      showWindInBft: showWindInBft,
+      fetchWeatherData: _fetchWeatherData,
+      setShowWindInBft: (bool value) {
+        setState(() {
+          showWindInBft = value;
+        });
+      },
+      webViewController: webViewController,
+      webViewError: webViewError,
+      isWebViewLoading: isWebViewLoading,
+      initializeWebView: () {
+        setState(() {
+          isWebViewLoading = true;
+        });
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _initializeWebView();
+        });
+      },
+      syncInterfaceColor: syncInterfaceColor,
+      getInterfaceIconColor: getInterfaceIconColor,
+    );
+  }
+
+  void _initializeSensorPanels() {
+    _sensorPanels = SensorPanels(
+      battery12VLevel: battery12VLevel,
+      battery12VVoltage: battery12VVoltage,
+      battery24VLevel: battery24VLevel,
+      battery24VVoltage: battery24VVoltage,
+      battery48VLevel: battery48VLevel,
+      battery48VVoltage: battery48VVoltage,
+      cleanWaterLevel: cleanWaterLevel,
+      greyWaterLevel: greyWaterLevel,
+      blackWaterLevel: blackWaterLevel,
+      fuelLevel: fuelLevel,
+      engineRoomTemp: engineRoomTemp,
+      chargerTemp: chargerTemp,
+      leftBatteryTemp: leftBatteryTemp,
+      rightBatteryTemp: rightBatteryTemp,
+    );
+  }
+
+  void _updateSensorPanels() {
+    _sensorPanels = SensorPanels(
+      battery12VLevel: battery12VLevel,
+      battery12VVoltage: battery12VVoltage,
+      battery24VLevel: battery24VLevel,
+      battery24VVoltage: battery24VVoltage,
+      battery48VLevel: battery48VLevel,
+      battery48VVoltage: battery48VVoltage,
+      cleanWaterLevel: cleanWaterLevel,
+      greyWaterLevel: greyWaterLevel,
+      blackWaterLevel: blackWaterLevel,
+      fuelLevel: fuelLevel,
+      engineRoomTemp: engineRoomTemp,
+      chargerTemp: chargerTemp,
+      leftBatteryTemp: leftBatteryTemp,
+      rightBatteryTemp: rightBatteryTemp,
+    );
+  }
+
+  void _initializeHeaderElements() {
+    _headerElements = HeaderElements(
+      weatherData: weatherData,
+      currentTime: _currentTime,
+      profileCode: profileCode,
+      isProfileOverlayVisible: isProfileOverlayVisible,
+      profileSlideController: _profileSlideController,
+      profileSlideAnimation: _profileSlideAnimation,
+      isNightModeActive: isVolumeControlLocked,
+      nightModeWarningColor: _nightModeWarningColor,
+      showLanguageOverlay: _showLanguageOverlay,
+      showProfileOverlay: _showProfileOverlay,
+      closeProfileOverlay: _closeProfileOverlay,
+      toggleNightMode: toggleNightMode,
+      playClickSound: _playClickSound,
+      navigateToPage: (int page) {
+        pageController.animateToPage(
+          page,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
+    );
+  }
+
+  void _updateHeaderElements() {
+    _headerElements = HeaderElements(
+      weatherData: weatherData,
+      currentTime: _currentTime,
+      profileCode: profileCode,
+      isProfileOverlayVisible: isProfileOverlayVisible,
+      profileSlideController: _profileSlideController,
+      profileSlideAnimation: _profileSlideAnimation,
+      isNightModeActive: isVolumeControlLocked,
+      nightModeWarningColor: _nightModeWarningColor,
+      showLanguageOverlay: _showLanguageOverlay,
+      showProfileOverlay: _showProfileOverlay,
+      closeProfileOverlay: _closeProfileOverlay,
+      toggleNightMode: toggleNightMode,
+      playClickSound: _playClickSound,
+      navigateToPage: (int page) {
+        pageController.animateToPage(
+          page,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
+    );
   }
 
   Future<void> _loadClickSound() async {
@@ -547,6 +734,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           weatherData = data;
           isLoadingWeather = false;
         });
+        _updateWidgetPanels();
+        _updateHeaderElements();
       }
     } catch (e) {
       if (mounted) {
@@ -554,6 +743,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           weatherError = true;
           isLoadingWeather = false;
         });
+        _updateWidgetPanels();
+        _updateHeaderElements();
       }
       print('Failed to fetch weather data: $e');
     }
@@ -577,6 +768,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             volume = trackInfo['volume'] / 100;
           }
         });
+        _updateWidgetPanels();
+        _updateHeaderElements();
       }
     } catch (e) {
       print('Nie można zaktualizować stanu odtwarzacza: $e');
@@ -597,6 +790,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             cleanWaterLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu wody czystej: $e');
         }
@@ -608,6 +802,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             greyWaterLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu wody szarej: $e');
         }
@@ -619,6 +814,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             blackWaterLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu fekaliów: $e');
         }
@@ -630,6 +826,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             fuelLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu paliwa: $e');
         }
@@ -641,6 +838,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             engineRoomTemp = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania temperatury silnika: $e');
         }
@@ -652,6 +850,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             chargerTemp = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania temperatury ładowarki: $e');
         }
@@ -663,6 +862,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             leftBatteryTemp = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania temperatury baterii lewej: $e');
         }
@@ -674,6 +874,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             rightBatteryTemp = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania temperatury baterii prawej: $e');
         }
@@ -685,6 +886,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             battery12VLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu baterii 12V: $e');
         }
@@ -696,6 +898,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             battery12VVoltage = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania napięcia baterii 12V: $e');
         }
@@ -707,6 +910,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             battery24VLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu baterii 24V: $e');
         }
@@ -718,6 +922,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             battery24VVoltage = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania napięcia baterii 24V: $e');
         }
@@ -729,6 +934,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             battery48VLevel = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania poziomu baterii 48V: $e');
         }
@@ -740,6 +946,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           setState(() {
             battery48VVoltage = value;
           });
+          _updateSensorPanels();
         } catch (e) {
           print('Błąd podczas parsowania napięcia baterii 48V: $e');
         }
@@ -937,6 +1144,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         battery24VVoltageTopicController.text = battery24VVoltageTopic;
         battery48VLevelTopicController.text = battery48VLevelTopic;
         battery48VVoltageTopicController.text = battery48VVoltageTopic;
+        profileCodeTopicController.text = profileCodeTopic;
       });
     } else {
       // Pokaż komunikat o nieprawidłowym PINie
@@ -1013,6 +1221,9 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       battery24VVoltageTopic = battery24VVoltageTopicController.text;
       battery48VLevelTopic = battery48VLevelTopicController.text;
       battery48VVoltageTopic = battery48VVoltageTopicController.text;
+
+      // Aktualizacja tematu kodu profilu
+      profileCodeTopic = profileCodeTopicController.text;
 
       // Aktualizacja konfiguracji Volumio
       _volumioService.updateHost(volumioController.text);
@@ -1269,13 +1480,16 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   }
 
   void _closeProfileOverlay() {
+    print("DEBUG: _closeProfileOverlay() wywołane");
     // Anuluj subskrypcję MQTT przed zamknięciem overlaya
     _mqttService.unsubscribeFromTopic(profileCodeTopic);
 
     // Animuj zamknięcie overlaya
     _profileSlideController.reverse().then((_) {
+      print("DEBUG: animacja reverse zakończona");
       if (mounted) {
         setState(() {
+          print("DEBUG: setState wywołane - ukrywanie overlay");
           isProfileOverlayVisible = false;
         });
       }
@@ -1335,319 +1549,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     );
   }
 
-  Widget buildTankGauge({
-    required String title,
-    required double level,
-    required double width,
-    Color gaugeColor = const Color(0xFF64D2FF),
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: width * 0.6,
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Text(
-              '${level.toInt()}%',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 25,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 1),
-        SizedBox(
-          width: width,
-          height: 15,
-          child: SfLinearGauge(
-            minimum: 0,
-            maximum: 100,
-            showLabels: false,
-            showTicks: false,
-            orientation: LinearGaugeOrientation.horizontal,
-            axisTrackStyle: LinearAxisTrackStyle(
-              thickness: 12.59,
-              borderWidth: 0,
-              color: Colors.white.withOpacity(0.3),
-              edgeStyle: LinearEdgeStyle.bothCurve,
-            ),
-            barPointers: [
-              LinearBarPointer(
-                value: level,
-                thickness: 12.59,
-                color: gaugeColor,
-                edgeStyle: LinearEdgeStyle.bothCurve,
-              )
-            ],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '0',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 16.40,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              '100',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 16.40,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-      ],
-    );
-  }
-
-  Widget buildBatteryGauge({
-    required String title,
-    required double level,
-    required double voltage,
-    required double width,
-  }) {
-    Color getBatteryColor(double level) {
-      if (level > 70) {
-        return const Color(0xFF00FF48);
-      } else if (level > 30) {
-        return const Color(0xFFFFA500);
-      } else {
-        return const Color(0xFFFF0000);
-      }
-    }
-
-    return Container(
-      width: width,
-      margin: const EdgeInsets.only(
-          bottom: 4.0), // Zmniejszony odstęp między bateriami
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Nazwa baterii
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.90,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              // Wartość procentowa - przeniesiona tutaj
-              Text(
-                '${level.toInt()}%',
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 25.79,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-              height:
-                  2), // Zmniejszono z 4 na 2 odległość między tytułem a wykresem soc
-          SizedBox(
-            width: width,
-            height: 12.60,
-            child: SfLinearGauge(
-              minimum: 0,
-              maximum: 100,
-              showLabels: false,
-              showTicks: false,
-              orientation: LinearGaugeOrientation.horizontal,
-              axisTrackStyle: LinearAxisTrackStyle(
-                thickness: 12.60,
-                borderWidth: 0,
-                color: Colors.white.withOpacity(0.3),
-                edgeStyle: LinearEdgeStyle.bothCurve,
-              ),
-              barPointers: [
-                LinearBarPointer(
-                  value: level,
-                  thickness: 12.60,
-                  color: getBatteryColor(level),
-                  edgeStyle: LinearEdgeStyle.bothCurve,
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 2),
-          // Zamienione miejscami napięcie i tekst "Napięcie baterii"
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Napięcie baterii',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 16.41,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                '${voltage.toStringAsFixed(1)} V',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 16.41,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildTemperatureGauge({
-    required String title,
-    required double temperature,
-    required double width,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: width * 0.6,
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Text(
-              '${temperature.toStringAsFixed(1)}°C',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 25,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 1),
-        SizedBox(
-          width: width,
-          height: 15,
-          child: Stack(
-            children: [
-              Container(
-                width: width,
-                height: 15,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6.3),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF0000AA), // Granatowy
-
-                      Color(0xFF000000), // Czarny
-
-                      Color(0xFFFF0000), // Czerwony
-                    ],
-                    stops: [0.0, 0.5, 1.0],
-                  ),
-                ),
-              ),
-              SfLinearGauge(
-                minimum: 0,
-                maximum: 60,
-                showLabels: false,
-                showTicks: false,
-                orientation: LinearGaugeOrientation.horizontal,
-                axisTrackStyle: LinearAxisTrackStyle(
-                  thickness: 12.59,
-                  borderWidth: 0,
-                  color: Colors.transparent,
-                ),
-                markerPointers: [
-                  LinearShapePointer(
-                    value: temperature,
-                    width: 4,
-                    height: 15,
-                    color: Colors.white,
-                    shapeType: LinearShapePointerType.rectangle,
-                    position: LinearElementPosition.cross,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '0°C',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 14,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            Text(
-              '60°C',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 14,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-      ],
-    );
-  }
-
   // Funkcja aktualizująca czas
   void _updateTime() {
     final now = DateTime.now();
@@ -1656,6 +1557,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     setState(() {
       _currentTime = formattedTime;
     });
+    _updateHeaderElements();
   }
 
   @override
@@ -1677,7 +1579,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           // Oryginalne wymiary
           final buttonWidth = 153 * buttonScale;
           final buttonHeight = 147 * buttonScale;
-          final buttonSpacing = 79 * buttonScale;
 
           // Wymiary paneli bocznych
           final sideContainerWidth = 540 * buttonScale;
@@ -1725,193 +1626,18 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Górny pasek z logo itp.
-                Positioned(
-                  top: verticalOffset,
-                  left: horizontalOffset,
-                  child: Container(
-                    width: 1920 * buttonScale,
-                    height: 162 * buttonScale,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("assets/images/Outline.png"),
-                        fit: BoxFit.fill,
-                      ),
-                    ),
-                    child: Stack(),
-                  ),
+                // Elementy nagłówka - używamy zrefaktoryzowanej klasy HeaderElements
+                _headerElements.buildCompleteHeader(
+                  buttonScale: buttonScale,
+                  verticalOffset: verticalOffset,
+                  horizontalOffset: horizontalOffset,
+                  width: width,
+                  height: height,
+                  volumeBarX: volumeBarX,
+                  volumeBarWidth: volumeBarWidth,
                 ),
 
-                // Przyciski języka i ustawień
-                Positioned(
-                  top: verticalOffset + height * 0.025,
-                  left: horizontalOffset + width * 0.015,
-                  child: GestureDetector(
-                    onTap: () {
-                      _playClickSound();
-                      _showLanguageOverlay();
-                    },
-                    child: Container(
-                      width: 175 * buttonScale,
-                      height: 71 * buttonScale,
-                      decoration: ShapeDecoration(
-                        color: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25 * buttonScale),
-                          side: const BorderSide(
-                            color: Colors.white,
-                            width: 3.0,
-                          ),
-                        ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.language,
-                          color: Colors.white,
-                          size: 45 * buttonScale,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Przycisk profilu
-                Positioned(
-                  top: verticalOffset + height * 0.025,
-                  right: horizontalOffset + width * 0.015,
-                  child: GestureDetector(
-                    onTap: () {
-                      _playClickSound();
-                      setState(() {
-                        isProfileOverlayVisible = true;
-                      });
-                    },
-                    child: Container(
-                      width: 175 * buttonScale,
-                      height: 71 * buttonScale,
-                      decoration: ShapeDecoration(
-                        color: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25 * buttonScale),
-                          side: const BorderSide(
-                            color: Colors.white,
-                            width: 3.0,
-                          ),
-                        ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 35 * buttonScale,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Profile Overlay
-                if (isProfileOverlayVisible)
-                  Positioned(
-                    top: _profileSlideAnimation.value,
-                    left: (width - 631) / 2,
-                    child: GestureDetector(
-                      onTap: () => null, // Prevent clicks from passing through
-                      child: Container(
-                        width: 631,
-                        height: 357,
-                        decoration: const ShapeDecoration(
-                          color: Color(0xFF262626),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(34),
-                              bottomRight: Radius.circular(34),
-                            ),
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            Positioned(
-                              left: 56,
-                              top: 56,
-                              child: SizedBox(
-                                width: 518,
-                                child: Text(
-                                  'Aby się zalogować, \nwpisz poniższy kod w aplikacji mobilnej',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 28,
-                                    fontFamily: 'Roboto',
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.21,
-                                    letterSpacing: -0.40,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 220,
-                              top: 159,
-                              child: Text(
-                                profileCode,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 48,
-                                  fontFamily: 'Roboto',
-                                  fontWeight: FontWeight.w600,
-                                  height: 0.71,
-                                  letterSpacing: -0.40,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 32,
-                              top: 239,
-                              child: Container(
-                                width: 567,
-                                height: 81,
-                                decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0x3F000000),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                      spreadRadius: 0,
-                                    )
-                                  ],
-                                ),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    _profileSlideController.reverse().then((_) {
-                                      if (mounted) {
-                                        setState(() {
-                                          isProfileOverlayVisible = false;
-                                        });
-                                      }
-                                    });
-                                  },
-                                  child: Center(
-                                    child: Text(
-                                      'OK',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 34,
-                                        fontFamily: 'Roboto',
-                                        fontWeight: FontWeight.w600,
-                                        height: 1.21,
-                                        letterSpacing: 0.60,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                // Przycisk ustawień - na dole ekranu
                 Positioned(
                   bottom: verticalOffset + height * 0.025,
                   left: horizontalOffset + width * 0.015,
@@ -1933,80 +1659,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                       centralContainerX -
                       sideContainerWidth -
                       100 * buttonScale,
-                  child: Container(
-                    width: sideContainerWidth,
-                    height: batteryContainerHeight,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFF6F7074),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(27.88 * buttonScale),
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Zawartość panelu baterii
-                        Positioned(
-                          left: 34 * buttonScale,
-                          top: 15 * buttonScale,
-                          child: SizedBox(
-                            width: 120 * buttonScale,
-                            height: 30 * buttonScale,
-                            child: Text(
-                              LanguageService.translate('batteries'),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 28 * buttonScale,
-                                fontFamily: 'Roboto',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 40 * buttonScale,
-                          top: 50 * buttonScale,
-                          child: Container(
-                            width: sideContainerWidth -
-                                80 * buttonScale, // Dostosowana szerokość
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildBatteryGauge(
-                                  title:
-                                      LanguageService.translate('battery_12v'),
-                                  level: battery12VLevel,
-                                  voltage: battery12VVoltage,
-                                  width: sideContainerWidth - 80 * buttonScale,
-                                ),
-                                SizedBox(
-                                    height:
-                                        3 * buttonScale), // Zmniejszony odstęp
-                                buildBatteryGauge(
-                                  title:
-                                      LanguageService.translate('battery_24v'),
-                                  level: battery24VLevel,
-                                  voltage: battery24VVoltage,
-                                  width: sideContainerWidth - 80 * buttonScale,
-                                ),
-                                SizedBox(
-                                    height:
-                                        3 * buttonScale), // Zmniejszony odstęp
-                                buildBatteryGauge(
-                                  title:
-                                      LanguageService.translate('battery_48v'),
-                                  level: battery48VLevel,
-                                  voltage: battery48VVoltage,
-                                  width: sideContainerWidth - 80 * buttonScale,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _sensorPanels.buildBatteryPanel(
+                    buttonScale: buttonScale,
+                    sideContainerWidth: sideContainerWidth,
+                    batteryContainerHeight: batteryContainerHeight,
                   ),
                 ),
 
@@ -2020,92 +1676,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                       centralContainerX -
                       sideContainerWidth -
                       100 * buttonScale,
-                  child: Container(
-                    width: sideContainerWidth,
-                    height: tanksContainerHeight,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFF6F7074),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(27.87 * buttonScale),
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: 29 * buttonScale,
-                          top: 12 * buttonScale,
-                          child: SizedBox(
-                            width: 175.10 * buttonScale,
-                            height: 27.01 * buttonScale,
-                            child: Text(
-                              LanguageService.translate('tanks'),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 25 * buttonScale,
-                                fontFamily: 'Roboto',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 29 * buttonScale,
-                          top: 47 * buttonScale,
-                          child: Container(
-                            width: 220.14 * buttonScale,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildTankGauge(
-                                  title:
-                                      LanguageService.translate('clean_water'),
-                                  level: cleanWaterLevel,
-                                  width: 220.22 * buttonScale,
-                                  gaugeColor: const Color(0xFF64D2FF),
-                                ),
-                                buildTankGauge(
-                                  title:
-                                      LanguageService.translate('grey_water'),
-                                  level: greyWaterLevel,
-                                  width: 219.22 * buttonScale,
-                                  gaugeColor: const Color(0xFF64D2FF),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 291.61 * buttonScale,
-                          top: 47 * buttonScale,
-                          child: Container(
-                            width: 220.14 * buttonScale,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildTankGauge(
-                                  title:
-                                      LanguageService.translate('black_water'),
-                                  level: blackWaterLevel,
-                                  width: 220.22 * buttonScale,
-                                  gaugeColor: const Color(0xFF64D2FF),
-                                ),
-                                buildTankGauge(
-                                  title: LanguageService.translate('fuel'),
-                                  level: fuelLevel,
-                                  width: 219.22 * buttonScale,
-                                  gaugeColor: const Color(0xFF64D2FF),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _sensorPanels.buildTanksPanel(
+                    buttonScale: buttonScale,
+                    sideContainerWidth: sideContainerWidth,
+                    tanksContainerHeight: tanksContainerHeight,
                   ),
                 ),
 
@@ -2121,89 +1695,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                       centralContainerX -
                       sideContainerWidth -
                       100 * buttonScale,
-                  child: Container(
-                    width: sideContainerWidth,
-                    height: tempContainerHeight,
-                    decoration: ShapeDecoration(
-                      color: const Color(0xFF6F7074),
-                      shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(27.87 * buttonScale),
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          left: 29 * buttonScale,
-                          top: 12 * buttonScale,
-                          child: SizedBox(
-                            width: 480 * buttonScale,
-                            height: 27.01 * buttonScale,
-                            child: Text(
-                              LanguageService.translate('tech_rooms_temps'),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 22 * buttonScale,
-                                fontFamily: 'Roboto',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 29 * buttonScale,
-                          top: 47 * buttonScale,
-                          child: Container(
-                            width: 220.14 * buttonScale,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildTemperatureGauge(
-                                  title:
-                                      LanguageService.translate('engine_room'),
-                                  temperature: engineRoomTemp,
-                                  width: 220.22 * buttonScale,
-                                ),
-                                buildTemperatureGauge(
-                                  title:
-                                      LanguageService.translate('charger_room'),
-                                  temperature: chargerTemp,
-                                  width: 219.22 * buttonScale,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 291.61 * buttonScale,
-                          top: 47 * buttonScale,
-                          child: Container(
-                            width: 220.14 * buttonScale,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                buildTemperatureGauge(
-                                  title:
-                                      LanguageService.translate('left_battery'),
-                                  temperature: leftBatteryTemp,
-                                  width: 220.22 * buttonScale,
-                                ),
-                                buildTemperatureGauge(
-                                  title: LanguageService.translate(
-                                      'right_battery'),
-                                  temperature: rightBatteryTemp,
-                                  width: 219.22 * buttonScale,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: _sensorPanels.buildTemperaturePanel(
+                    buttonScale: buttonScale,
+                    sideContainerWidth: sideContainerWidth,
+                    tempContainerHeight: tempContainerHeight,
                   ),
                 ),
 
@@ -2241,13 +1736,17 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                     builder: (context) {
                                       switch (pageIndex) {
                                         case 0:
-                                          return buildMusicWidget();
+                                          return _widgetPanels
+                                              .buildMusicWidget();
                                         case 1:
-                                          return buildWeatherWidget();
+                                          return _widgetPanels
+                                              .buildWeatherWidget();
                                         case 2:
-                                          return buildWebViewWidget();
+                                          return _widgetPanels
+                                              .buildWebViewWidget();
                                         default:
-                                          return buildMusicWidget();
+                                          return _widgetPanels
+                                              .buildMusicWidget();
                                       }
                                     },
                                   ),
@@ -2739,7 +2238,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                             ),
                             child: Center(
                               child: Icon(
-                                MdiIcons.weatherNight,
+                                Icons.nightlight_round,
                                 color: isNightModeActive
                                     ? _nightModeWarningColor ??
                                         const Color.fromARGB(255, 0, 0, 0)
@@ -2750,109 +2249,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-
-                // Pozostałe elementy - logo, zegar, pogoda
-                Positioned(
-                  top: verticalOffset + 40 * buttonScale,
-                  left: horizontalOffset + 520 * buttonScale,
-                  child: GestureDetector(
-                    onTap: () {
-                      _playClickSound();
-                      pageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: Icon(
-                      weatherData?.getWeatherIcon() ?? Icons.wb_sunny,
-                      color: weatherData?.getIconColor() ?? Colors.yellow,
-                      size: 60 * buttonScale,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: verticalOffset + 40 * buttonScale,
-                  left: horizontalOffset + 570 * buttonScale,
-                  child: GestureDetector(
-                    onTap: () {
-                      _playClickSound();
-                      pageController.animateToPage(
-                        1,
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                    child: SizedBox(
-                      width: 130 * buttonScale,
-                      height: 60 * buttonScale,
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text:
-                                  weatherData?.temperature.toStringAsFixed(0) ??
-                                      '--',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 48 * buttonScale,
-                                fontFamily: 'Roboto',
-                                fontWeight: FontWeight.w600,
-                                height: 0.85,
-                                letterSpacing: -0.40,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '°C',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 48 * buttonScale,
-                                fontFamily: 'Roboto',
-                                fontWeight: FontWeight.w400,
-                                height: 0.85,
-                                letterSpacing: -0.40,
-                              ),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: verticalOffset + 40 * buttonScale,
-                  left: horizontalOffset + 863 * buttonScale,
-                  child: Container(
-                    width: 193.22 * buttonScale,
-                    height: 83 * buttonScale,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage("assets/images/logo.png"),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: verticalOffset + 40 * buttonScale,
-                  left: horizontalOffset + 1220 * buttonScale,
-                  child: SizedBox(
-                    width: 130 * buttonScale,
-                    height: 60 * buttonScale,
-                    child: Text(
-                      _currentTime,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 48 * buttonScale,
-                        fontWeight: FontWeight.w600,
-                        height: 0.85,
-                        letterSpacing: -0.40,
-                      ),
                     ),
                   ),
                 ),
@@ -3423,13 +2819,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(width: width * 0.02),
-                                    Expanded(
-                                      child: Column(
-                                        children: [
+                                          SizedBox(height: height * 0.018),
                                           TextField(
                                             controller:
                                                 leftBatteryTempTopicController,
@@ -3480,21 +2870,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                         ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                                SizedBox(height: height * 0.025),
-                                Text(
-                                  "Tematy baterii",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: fontSize * 0.7,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: height * 0.018),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                                    SizedBox(width: width * 0.02),
                                     Expanded(
                                       child: Column(
                                         children: [
@@ -3566,13 +2942,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(width: width * 0.02),
-                                    Expanded(
-                                      child: Column(
-                                        children: [
+                                          SizedBox(height: height * 0.018),
                                           TextField(
                                             controller:
                                                 battery24VVoltageTopicController,
@@ -3688,113 +3058,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                       ),
                     ),
                   ),
-                if (isPinPromptVisible)
-                  Positioned.fill(
-                    child: Container(
-                      color: Colors.black.withOpacity(0.8),
-                      child: Center(
-                        child: Container(
-                          width: width * 0.3,
-                          padding: EdgeInsets.all(20 * buttonScale),
-                          decoration: BoxDecoration(
-                            color: const Color.fromRGBO(30, 30, 30, 1),
-                            borderRadius:
-                                BorderRadius.circular(28.39 * buttonScale),
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    LanguageService.translate('enter_pin'),
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: fontSize,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close,
-                                        color: Colors.white),
-                                    onPressed: () {
-                                      setState(() {
-                                        isPinPromptVisible = false;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: height * 0.025),
-                              Text(
-                                enteredPin,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: fontSize,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: height * 0.025),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                  childAspectRatio: 2,
-                                ),
-                                itemCount: 12,
-                                itemBuilder: (context, index) {
-                                  if (index == 9) {
-                                    return TextButton(
-                                      onPressed: _removePinDigit,
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      child: const Icon(
-                                        Icons.backspace,
-                                        size: 24,
-                                      ),
-                                    );
-                                  } else if (index == 10) {
-                                    return TextButton(
-                                      onPressed: () => _addPinDigit('0'),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      child: const Text(
-                                        '0',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    final digit = (index + 1).toString();
-                                    return TextButton(
-                                      onPressed: () => _addPinDigit(digit),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                      ),
-                                      child: Text(
-                                        digit,
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+
                 if (isVolumeNotificationVisible)
                   Positioned(
                     top: _volumeSlideAnimation.value,
@@ -3997,171 +3261,150 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                     ),
                   ),
                 if (isLanguageOverlayVisible) buildLanguageOverlay(),
+                // PIN overlay - musi być na końcu Stack aby było na górze wszystkich innych nakładek
+                if (isPinPromptVisible)
+                  Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.8),
+                      child: Center(
+                        child: Container(
+                          width: width * 0.3,
+                          padding: EdgeInsets.all(20 * buttonScale),
+                          decoration: BoxDecoration(
+                            color: const Color.fromRGBO(30, 30, 30, 1),
+                            borderRadius:
+                                BorderRadius.circular(28.39 * buttonScale),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    LanguageService.translate('enter_pin'),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: fontSize,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close,
+                                        color: Colors.white),
+                                    onPressed: () {
+                                      setState(() {
+                                        isPinPromptVisible = false;
+                                        enteredPin = '';
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: height * 0.025),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  for (int i = 0; i < 4; i++)
+                                    Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      width: 16,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color: i < enteredPin.length
+                                            ? Colors.white
+                                            : Colors.white30,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              SizedBox(height: height * 0.025),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                gridDelegate:
+                                    const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  childAspectRatio: 2,
+                                ),
+                                itemCount: 12,
+                                itemBuilder: (context, index) {
+                                  if (index == 9) {
+                                    return TextButton(
+                                      onPressed: _removePinDigit,
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: const Icon(
+                                        Icons.backspace,
+                                        size: 24,
+                                      ),
+                                    );
+                                  } else if (index == 10) {
+                                    return TextButton(
+                                      onPressed: () => _addPinDigit('0'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: const Text(
+                                        '0',
+                                        style: TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  } else if (index == 11) {
+                                    // Przycisk OK - widoczny tylko gdy wprowadzono 4 cyfry
+                                    return enteredPin.length == 4
+                                        ? ElevatedButton(
+                                            onPressed: _verifyPin,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: const Text(
+                                              'OK',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          )
+                                        : const SizedBox.shrink();
+                                  } else {
+                                    final digit = (index + 1).toString();
+                                    return TextButton(
+                                      onPressed: () => _addPinDigit(digit),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                      ),
+                                      child: Text(
+                                        digit,
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                // Profile Overlay - musi być na samej górze, tuż po PIN overlay
+                if (isProfileOverlayVisible)
+                  _headerElements.buildProfileOverlay(width: width),
               ],
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget buildMusicWidget() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-      child: Stack(
-        children: [
-          if (currentAlbumArt.isNotEmpty)
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28.39),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.network(
-                      _getFullAlbumArtUrl(currentAlbumArt),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const SizedBox.shrink();
-                      },
-                    ),
-                    BackdropFilter(
-                      filter: ImageFilter.blur(
-                        sigmaX: 10.0,
-                        sigmaY: 10.0,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(28.39),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(height: 46),
-              SizedBox(
-                width: 300,
-                height: 300,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(28.39),
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    color: Colors.transparent,
-                    child: currentAlbumArt.isNotEmpty
-                        ? Image.network(
-                            _getFullAlbumArtUrl(currentAlbumArt),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading album art: $error');
-                              return _buildDefaultAlbumArt();
-                            },
-                          )
-                        : _buildDefaultAlbumArt(),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 40),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            currentSongTitle,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 4.0,
-                                  color: Colors.black,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            currentSongArtist,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 22,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 4.0,
-                                  color: Colors.black,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                      Center(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.fast_rewind_rounded,
-                                color: Colors.white,
-                                size: 65,
-                              ),
-                              onPressed: previousTrack,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                            const SizedBox(width: 40),
-                            IconButton(
-                              icon: Icon(
-                                isPlaying
-                                    ? Icons.pause_rounded
-                                    : Icons.play_arrow_rounded,
-                                color: Colors.white,
-                                size: 70,
-                              ),
-                              onPressed: togglePlayPause,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                            const SizedBox(width: 40),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.fast_forward_rounded,
-                                color: Colors.white,
-                                size: 65,
-                              ),
-                              onPressed: nextTrack,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -4226,278 +3469,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           ),
         ),
       ],
-    );
-  }
-
-  Widget buildWeatherWidget() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: isLoadingWeather
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            LanguageService.translate('loading_weather'),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : weatherError
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: Colors.red,
-                                size: 60,
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                LanguageService.translate('weather_error'),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 20),
-                              ElevatedButton(
-                                onPressed: _fetchWeatherData,
-                                child: Text(
-                                    LanguageService.translate('try_again')),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            SizedBox(
-                              width: 220,
-                              height: 220,
-                              child: FittedBox(
-                                fit: BoxFit.contain,
-                                child: Icon(
-                                  weatherData?.getWeatherIcon() ??
-                                      Icons.wb_sunny,
-                                  color: weatherData?.getIconColor() ??
-                                      Colors.yellow,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              '${weatherData?.temperature.toStringAsFixed(1) ?? ""}°C',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 60,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              weatherData?.description ?? '',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 28,
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  buildWeatherDetail(
-                                    Icons.water_drop,
-                                    '${weatherData?.humidity ?? ""}%',
-                                    'humidity',
-                                  ),
-                                  buildWindDetail(),
-                                  buildWeatherDetail(
-                                    Icons.compress,
-                                    '${weatherData?.pressure ?? ""} hPa',
-                                    'pressure',
-                                  ),
-                                  buildWeatherDetail(
-                                    Icons.waves,
-                                    '${weatherData?.waterTemperature.toStringAsFixed(1) ?? ""}°C',
-                                    'water_temp',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildWeatherDetail(IconData icon, String value, String label) {
-    return Column(
-      children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 32,
-        ),
-        const SizedBox(height: 7),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        Text(
-          LanguageService.translate(label),
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildWindDetail() {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              showWindInBft = !showWindInBft;
-            });
-          },
-          child: const Icon(
-            Icons.air,
-            color: Colors.white,
-            size: 32,
-          ),
-        ),
-        const SizedBox(height: 7),
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              showWindInBft = !showWindInBft;
-            });
-          },
-          child: Text(
-            showWindInBft
-                ? weatherData?.getWindSpeedInBft() ?? ""
-                : '${weatherData?.getWindSpeedInKmh() ?? ""} km/h',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Text(
-          LanguageService.translate('wind'),
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildWebViewWidget() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 20.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28.39),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                children: [
-                  webViewError
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: Colors.red,
-                                size: 60,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                LanguageService.translate('webview_error'),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.red,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    isWebViewLoading = true;
-                                  });
-                                  Future.delayed(
-                                      const Duration(milliseconds: 100), () {
-                                    _initializeWebView();
-                                  });
-                                },
-                                child: Text(
-                                    LanguageService.translate('try_again')),
-                              ),
-                            ],
-                          ),
-                        )
-                      : Positioned.fill(
-                          child: webViewController != null
-                              ? WebViewWidget(
-                                  controller: webViewController!,
-                                )
-                              : const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                        ),
-                  if (isWebViewLoading)
-                    const Positioned.fill(
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -4766,110 +3737,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget buildProfileOverlay() {
-    return Container(
-      width: 631,
-      height: 357,
-      child: Stack(
-        children: [
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              width: 631,
-              height: 357,
-              decoration: ShapeDecoration(
-                color: const Color(0xFF262626),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(34),
-                    bottomRight: Radius.circular(34),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 56,
-            top: 56,
-            child: SizedBox(
-              width: 518,
-              child: Text(
-                'Aby się zalogować, \nwpisz poniższy kod w aplikacji mobilnej',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.w700,
-                  height: 1.21,
-                  letterSpacing: -0.40,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 220,
-            top: 159,
-            child: Text(
-              profileCode,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 48,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w600,
-                height: 0.71,
-                letterSpacing: -0.40,
-              ),
-            ),
-          ),
-          Positioned(
-            left: 32,
-            top: 239,
-            child: Container(
-              width: 567,
-              height: 81,
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x3F000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                    spreadRadius: 0,
-                  )
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    left: 78.64,
-                    top: 20,
-                    child: SizedBox(
-                      width: 403.52,
-                      child: Text(
-                        'OK',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 34,
-                          fontFamily: 'Roboto',
-                          fontWeight: FontWeight.w600,
-                          height: 1.21,
-                          letterSpacing: 0.60,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

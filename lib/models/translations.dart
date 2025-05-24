@@ -54,6 +54,7 @@ class Translations {
       'battery_24v_voltage_topic': 'Temat napięcie baterii 24V',
       'battery_48v_level_topic': 'Temat poziom baterii 48V',
       'battery_48v_voltage_topic': 'Temat napięcie baterii 48V',
+      'profile_code_topic': 'Temat kod profilu',
       'mess_light': 'Ośw. mesy',
       'individual_mess_light': 'Punktowe \nośw. mesy',
       'kitchen_light': 'Ośw. kuchni',
