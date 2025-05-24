@@ -216,6 +216,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   final TextEditingController wledSecondaryController = TextEditingController();
   final TextEditingController profileCodeTopicController =
       TextEditingController();
+  final TextEditingController waterTemperatureTopicController =
+      TextEditingController();
 
   bool isVolumeControlLocked = false;
   bool isVolumeNotificationVisible = false;
@@ -260,6 +262,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   double chargerTemp = 28.7;
   double leftBatteryTemp = 42.3;
   double rightBatteryTemp = 31.5;
+
+  // Temperatura wody z MQTT
+  double waterTemperature = 15.0;
+  String waterTemperatureTopic = 'nautiner/sensors/water_temperature';
 
   String engineRoomTempTopic = 'nautiner/temperature/engine_room';
   String chargerTempTopic = 'nautiner/temperature/charger';
@@ -424,6 +430,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     battery48VLevelTopicController.text = battery48VLevelTopic;
     battery48VVoltageTopicController.text = battery48VVoltageTopic;
     profileCodeTopicController.text = profileCodeTopic;
+    waterTemperatureTopicController.text = waterTemperatureTopic;
 
     _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
       if (mounted) {
@@ -728,7 +735,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     });
 
     try {
-      final data = await WeatherService.getWeatherData();
+      final data = await WeatherService.getWeatherData(
+          waterTemperature: waterTemperature);
       if (mounted) {
         setState(() {
           weatherData = data;
@@ -951,6 +959,20 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           print('Błąd podczas parsowania napięcia baterii 48V: $e');
         }
       });
+
+      _mqttService.subscribeToTopic(waterTemperatureTopic, (topic, message) {
+        try {
+          final value = double.parse(message);
+          setState(() {
+            waterTemperature = value;
+          });
+          _updateSensorPanels();
+          // Odśwież dane pogodowe z nową temperaturą wody
+          _fetchWeatherData();
+        } catch (e) {
+          print('Błąd podczas parsowania temperatury wody: $e');
+        }
+      });
     } catch (e) {
       print('Cannot connect to MQTT broker: $e');
       Future.delayed(const Duration(seconds: 10), () {
@@ -1145,6 +1167,15 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         battery48VLevelTopicController.text = battery48VLevelTopic;
         battery48VVoltageTopicController.text = battery48VVoltageTopic;
         profileCodeTopicController.text = profileCodeTopic;
+        waterTemperatureTopicController.text = waterTemperatureTopic;
+
+        _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
+          if (mounted) {
+            setState(() {
+              profileCode = message;
+            });
+          }
+        });
       });
     } else {
       // Pokaż komunikat o nieprawidłowym PINie
@@ -1213,6 +1244,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       chargerTempTopic = chargerTempTopicController.text;
       leftBatteryTempTopic = leftBatteryTempTopicController.text;
       rightBatteryTempTopic = rightBatteryTempTopicController.text;
+      waterTemperatureTopic = waterTemperatureTopicController.text;
 
       // Aktualizacja tematów baterii
       battery12VLevelTopic = battery12VLevelTopicController.text;
@@ -2867,6 +2899,30 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                               ),
                                             ),
                                           ),
+                                          SizedBox(height: height * 0.018),
+                                          TextField(
+                                            controller:
+                                                waterTemperatureTopicController,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  LanguageService.translate(
+                                                      'water_temp_topic'),
+                                              labelStyle: const TextStyle(
+                                                  color: Colors.white70),
+                                              enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white54),
+                                              ),
+                                              focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -2997,6 +3053,53 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                             decoration: InputDecoration(
                                               labelText: LanguageService.translate(
                                                   'battery_48v_voltage_topic'),
+                                              labelStyle: const TextStyle(
+                                                  color: Colors.white70),
+                                              enabledBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white54),
+                                              ),
+                                              focusedBorder:
+                                                  UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Sekcja Profile Code Topic
+                                const SizedBox(height: 30),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            LanguageService.translate(
+                                                'profile_settings'),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 15),
+                                          TextField(
+                                            controller:
+                                                profileCodeTopicController,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  LanguageService.translate(
+                                                      'profile_code_topic'),
                                               labelStyle: const TextStyle(
                                                   color: Colors.white70),
                                               enabledBorder:

@@ -222,7 +222,8 @@ class HeaderElements {
                             ),
                           ),
                           Positioned(
-                            left: 220,
+                            left: 56,
+                            right: 56,
                             top: 159,
                             child: Text(
                               profileCode,

@@ -11,6 +11,7 @@ class WeatherService {
   static Future<WeatherModel> getWeatherData({
     String city = 'Warsaw',
     String countryCode = 'pl',
+    double? waterTemperature,
   }) async {
     final url = Uri.parse(
         '$_baseUrl/weather?q=$city,$countryCode&units=metric&appid=$_apiKey&lang=pl');
@@ -20,7 +21,7 @@ class WeatherService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return WeatherModel.fromJson(data);
+        return WeatherModel.fromJson(data, waterTemperature: waterTemperature);
       } else {
         throw Exception(
             'Błąd pobierania danych pogodowych: ${response.statusCode}');

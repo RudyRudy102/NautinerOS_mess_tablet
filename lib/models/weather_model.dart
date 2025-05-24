@@ -22,7 +22,8 @@ class WeatherModel {
   });
 
   // Metoda do konwersji z JSON
-  factory WeatherModel.fromJson(Map<String, dynamic> json) {
+  factory WeatherModel.fromJson(Map<String, dynamic> json,
+      {double? waterTemperature}) {
     return WeatherModel(
       temperature: (json['main']['temp'] as num).toDouble(),
       humidity: json['main']['humidity'] as int,
@@ -31,7 +32,8 @@ class WeatherModel {
       iconCode: json['weather'][0]['icon'] as String,
       timestamp: DateTime.now(),
       pressure: json['main']['pressure'] as int, // Dodane ciśnienie
-      waterTemperature: 15.0, // Placeholder dla temperatury wody
+      waterTemperature:
+          waterTemperature ?? 15.0, // Użyj przekazanej wartości lub domyślną
     );
   }
 
