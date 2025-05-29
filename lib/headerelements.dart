@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'models/weather_model.dart';
+import 'services/language_service.dart';
 
 class HeaderElements {
   // Parametry pogodowe
@@ -208,7 +209,8 @@ class HeaderElements {
                             child: SizedBox(
                               width: 518,
                               child: Text(
-                                'Aby się zalogować, \nwpisz poniższy kod w aplikacji mobilnej',
+                                LanguageService.translate(
+                                    'profile_login_instruction'),
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,

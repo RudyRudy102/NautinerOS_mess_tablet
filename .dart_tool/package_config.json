@@ -152,6 +152,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "google_fonts",
+      "rootUri": "file:///Users/patryk/.pub-cache/hosted/pub.dev/google_fonts-6.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "http",
       "rootUri": "file:///Users/patryk/.pub-cache/hosted/pub.dev/http-1.4.0",
       "packageUri": "lib/",
@@ -482,7 +488,7 @@
       "languageVersion": "3.2"
     }
   ],
-  "generated": "2025-05-24T20:02:44.371843Z",
+  "generated": "2025-05-25T18:32:14.456456Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///Users/patryk/Documents/Code/flutter",

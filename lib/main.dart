@@ -16,6 +16,7 @@ import 'dart:ui';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'services/language_service.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -351,7 +352,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       vsync: this,
     );
     _volumeSlideAnimation = Tween<double>(
-      begin: -357.0, // wysokość kontenera powiadomienia
+      begin:
+          -480.0, // wysokość kontenera powiadomienia (450) + dodatkowy margines - zwiększona dla animacji z góry
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _volumeSlideController,
@@ -364,7 +366,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       vsync: this,
     );
     _nightModeSlideAnimation = Tween<double>(
-      begin: -468.0,
+      begin: -520.0,
       end: 0.0,
     ).animate(CurvedAnimation(
       parent: _nightModeSlideController,
@@ -1069,6 +1071,17 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     }
   }
 
+  void _closeVolumeNotification() {
+    _volumeNotificationTimer?.cancel();
+    _volumeSlideController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          isVolumeNotificationVisible = false;
+        });
+      }
+    });
+  }
+
   void _showVolumeNotification() {
     setState(() {
       isVolumeNotificationVisible = true;
@@ -1180,9 +1193,9 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     } else {
       // Pokaż komunikat o nieprawidłowym PINie
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nieprawidłowy kod PIN'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(LanguageService.translate('invalid_pin')),
+          duration: const Duration(seconds: 2),
         ),
       );
       setState(() {
@@ -1276,10 +1289,9 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   void updateVolume(double newVolume) async {
     if (isVolumeControlLocked) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'Regulacja głośności jest zablokowana w godzinach 00:00 - 06:00'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: Text(LanguageService.translate('volume_locked')),
+          duration: const Duration(seconds: 2),
         ),
       );
       return;
@@ -1357,7 +1369,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       print('Błąd aktualizacji stanu WLED: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Błąd sterowania oświetleniem: $e'),
+          content: Text(
+              '${LanguageService.translate('lighting_control_error')}: $e'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -1381,7 +1394,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         print('Błąd aktualizacji koloru WLED: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Błąd aktualizacji koloru: $e'),
+            content:
+                Text('${LanguageService.translate('color_update_error')}: $e'),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -1406,7 +1420,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         print('Błąd aktualizacji temperatury barwowej WLED: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Błąd aktualizacji temperatury barwowej: $e'),
+            content:
+                Text('${LanguageService.translate('color_temp_error')}: $e'),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -1427,7 +1442,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           print('Błąd aktualizacji jasności (tryb koloru) WLED: $e');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Błąd aktualizacji jasności: $e'),
+              content:
+                  Text('${LanguageService.translate('brightness_error')}: $e'),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -1439,7 +1455,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           print('Błąd aktualizacji jasności (tryb temperatury) WLED: $e');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Błąd aktualizacji jasności: $e'),
+              content:
+                  Text('${LanguageService.translate('brightness_error')}: $e'),
               duration: const Duration(seconds: 2),
             ),
           );
@@ -1674,7 +1691,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   bottom: verticalOffset + height * 0.025,
                   left: horizontalOffset + width * 0.015,
                   child: IconButton(
-                    icon: const Icon(Icons.settings),
+                    icon: const Icon(FontAwesomeIcons.gear),
                     color: Colors.white,
                     iconSize: 30 * buttonScale,
                     onPressed: () {
@@ -2149,7 +2166,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.kitchen,
+                                FontAwesomeIcons.sink,
                                 size: 45 * buttonScale,
                                 color: isButton4Active
                                     ? getInterfaceIconColor(true)
@@ -2270,7 +2287,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                             ),
                             child: Center(
                               child: Icon(
-                                Icons.nightlight_round,
+                                FontAwesomeIcons.moon,
                                 color: isNightModeActive
                                     ? _nightModeWarningColor ??
                                         const Color.fromARGB(255, 0, 0, 0)
@@ -3163,66 +3180,124 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   ),
 
                 if (isVolumeNotificationVisible)
-                  Positioned(
-                    top: _volumeSlideAnimation.value,
-                    left: (width - 631) / 2,
+                  Positioned.fill(
                     child: GestureDetector(
-                      onTap: () => null,
-                      child: SizedBox(
-                        width: 631,
-                        height: 357,
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 631,
-                              height: 357,
-                              decoration: const ShapeDecoration(
-                                color: Color(0xFF262626),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(34),
-                                    bottomRight: Radius.circular(34),
+                      onTap: _closeVolumeNotification,
+                      child: Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: AnimatedBuilder(
+                          animation: _volumeSlideController,
+                          builder: (context, child) {
+                            return Align(
+                              alignment: Alignment.topCenter,
+                              child: Transform.translate(
+                                offset: Offset(0, _volumeSlideAnimation.value),
+                                child: GestureDetector(
+                                  onTap: () => null,
+                                  child: Container(
+                                    width: 631,
+                                    height:
+                                        450, // Zwiększona wysokość z 357 do 450
+                                    decoration: const ShapeDecoration(
+                                      color: Color(0xFF262626),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(34),
+                                          bottomRight: Radius.circular(34),
+                                        ),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(
+                                          30), // Dodany padding dla całego kontenera
+                                      child: Column(
+                                        children: [
+                                          // Ikona ostrzeżenia
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 15, bottom: 25),
+                                            child: Container(
+                                              width: 100,
+                                              height: 100,
+                                              decoration: BoxDecoration(
+                                                color: const Color.fromARGB(
+                                                    0, 255, 255, 255),
+                                                borderRadius:
+                                                    BorderRadius.circular(50),
+                                              ),
+                                              child: const Icon(
+                                                Icons.warning_rounded,
+                                                size: 100,
+                                                color: Color.fromARGB(
+                                                    200, 255, 204, 0),
+                                              ),
+                                            ),
+                                          ),
+                                          // Tekst ostrzeżenia
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets
+                                                  .symmetric(
+                                                  horizontal:
+                                                      20), // Zmniejszony padding z 65 do 20
+                                              child: Center(
+                                                child: Text(
+                                                  LanguageService.translate(
+                                                      'volume_notification'),
+                                                  textAlign: TextAlign.center,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 24,
+                                                    fontFamily:
+                                                        'SourceSansPro-Regular',
+                                                    fontWeight: FontWeight.w700,
+                                                    height: 1.42,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          // Przycisk OK
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 20), // Tylko górny padding
+                                            child: SizedBox(
+                                              width: double
+                                                  .infinity, // Pełna szerokość
+                                              height:
+                                                  60, // Większa wysokość przycisku
+                                              child: ElevatedButton(
+                                                onPressed:
+                                                    _closeVolumeNotification,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.white,
+                                                  foregroundColor: Colors.black,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  LanguageService.translate(
+                                                      'ok'),
+                                                  style: const TextStyle(
+                                                      fontSize:
+                                                          20, // Większy tekst
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              left: 65,
-                              top: 128,
-                              child: SizedBox(
-                                width: 518,
-                                child: Text(
-                                  LanguageService.translate(
-                                      'volume_notification'),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 24,
-                                    fontFamily: 'SourceSansPro-Regular',
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.42,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              left: 263,
-                              top: 25,
-                              child: Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(0, 255, 255, 255),
-                                  borderRadius: BorderRadius.circular(50),
-                                ),
-                                child: const Icon(
-                                  Icons.warning_rounded,
-                                  size: 100,
-                                  color: Color.fromARGB(200, 255, 204, 0),
-                                ),
-                              ),
-                            ),
-                          ],
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -3238,122 +3313,147 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         });
                       },
                       child: Container(
-                        color: Colors.transparent,
+                        color: Colors.black.withOpacity(0.5),
                         child: AnimatedBuilder(
                           animation: _nightModeSlideController,
                           builder: (context, child) {
-                            return Positioned(
-                              top: _nightModeSlideAnimation.value,
-                              left: (width - 631) / 2,
-                              child: GestureDetector(
-                                onTap: () => null,
-                                child: SizedBox(
-                                  width: 631,
-                                  height: 468,
-                                  child: Stack(
-                                    children: [
-                                      Positioned(
-                                        left: 0,
-                                        top: 0,
-                                        child: Container(
-                                          width: 631,
-                                          height: 442,
-                                          decoration: const ShapeDecoration(
-                                            color: Color(0xFF262626),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.only(
-                                                bottomLeft: Radius.circular(34),
-                                                bottomRight:
-                                                    Radius.circular(34),
-                                              ),
-                                            ),
+                            return Align(
+                              alignment: Alignment.topCenter,
+                              child: Transform.translate(
+                                offset:
+                                    Offset(0, _nightModeSlideAnimation.value),
+                                child: GestureDetector(
+                                  onTap: () => null,
+                                  child: Container(
+                                    width: 631,
+                                    height: 600,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF262626),
+                                      borderRadius: BorderRadius.all(
+                                        Radius.circular(34),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        // Ikona ostrzeżenia
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 40, bottom: 30),
+                                          child: Icon(
+                                            Icons.warning_rounded,
+                                            size: 80,
+                                            color: Colors.red,
                                           ),
                                         ),
-                                      ),
-                                      Positioned(
-                                        left: 65,
-                                        top: 149.67,
-                                        child: SizedBox(
-                                          width: 518,
-                                          height: 238.54,
-                                          child: Text(
-                                            LanguageService.translate(
-                                                'night_mode_warning'),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 24,
-                                              fontFamily: 'Roboto',
-                                              fontWeight: FontWeight.w700,
-                                              height: 1.42,
-                                              letterSpacing: -0.40,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        left: 179,
-                                        top: 368,
-                                        child: SizedBox(
-                                          width: 274,
-                                          height: 39.76,
-                                          child: Text(
-                                            LanguageService.translate(
-                                                'continue_question'),
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              color: const Color(0xFFFF0000),
-                                              fontSize: 24,
-                                              fontFamily: 'Roboto',
-                                              fontWeight: FontWeight.w600,
-                                              height: 1.42,
-                                              letterSpacing: -0.40,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        left: 20,
-                                        bottom: 20,
-                                        child: Row(
-                                          children: [
-                                            ElevatedButton(
-                                              onPressed:
-                                                  _closeNightModeConfirmation,
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                foregroundColor: Colors.white,
-                                                minimumSize: Size(290, 60),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                              ),
-                                              child: Text(
-                                                LanguageService.translate('no'),
-                                                style: const TextStyle(
-                                                    fontSize: 24),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 20),
-                                            ElevatedButton(
-                                              onPressed: _disableNightMode,
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.white,
-                                                foregroundColor: Colors.black,
-                                              ),
+                                        // Tekst ostrzeżenia
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 40),
+                                            child: SingleChildScrollView(
                                               child: Text(
                                                 LanguageService.translate(
-                                                    'yes'),
+                                                    'night_mode_warning'),
+                                                textAlign: TextAlign.center,
                                                 style: const TextStyle(
-                                                    fontSize: 24),
+                                                  color: Colors.white,
+                                                  fontSize: 22,
+                                                  fontFamily: 'Roboto',
+                                                  fontWeight: FontWeight.w600,
+                                                  height: 1.4,
+                                                ),
                                               ),
                                             ),
-                                          ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 20),
+                                        // Pytanie czy kontynuować
+                                        Text(
+                                          LanguageService.translate(
+                                              'continue_question'),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 20,
+                                            fontFamily: 'Roboto',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 20),
+                                        // Przyciski
+                                        Padding(
+                                          padding: const EdgeInsets.all(30),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  onPressed:
+                                                      _closeNightModeConfirmation,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.grey[700],
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    minimumSize:
+                                                        const Size(0, 70),
+                                                    elevation: 4,
+                                                    shadowColor: Colors.black
+                                                        .withOpacity(0.2),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    LanguageService.translate(
+                                                        'no'),
+                                                    style: const TextStyle(
+                                                        fontSize: 22,
+                                                        fontWeight:
+                                                            FontWeight.w600),
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 20),
+                                              Expanded(
+                                                child: ElevatedButton(
+                                                  onPressed: _disableNightMode,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        const Color(0xFF4CAF50),
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    minimumSize:
+                                                        const Size(0, 70),
+                                                    elevation: 8,
+                                                    shadowColor: Colors.black
+                                                        .withOpacity(0.3),
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    LanguageService.translate(
+                                                        'yes'),
+                                                    style: const TextStyle(
+                                                        fontSize: 22,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),

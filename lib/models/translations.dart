@@ -60,13 +60,14 @@ class Translations {
       'mess_light': 'Ośw. mesy',
       'individual_mess_light': 'Punktowe \nośw. mesy',
       'kitchen_light': 'Ośw. kuchni',
-      'external_light': 'Ośw. zewnętrzne',
+      'external_light': 'Ośw. pokładu',
       'connection_settings': 'Ustawienia połączeń',
       'save_connections': 'Zapisz ustawienia',
       'enter_pin': 'Wprowadź kod PIN',
       'continue_question': 'Czy chcesz kontynuować?',
       'yes': 'Tak',
       'no': 'Nie',
+      'ok': 'OK',
       'mqtt_broker_ip': 'Adres brokera MQTT',
       'mqtt_broker_port': 'Port brokera MQTT',
       'mqtt_username': 'Nazwa użytkownika MQTT',
@@ -75,6 +76,20 @@ class Translations {
       'wled_secondary_ip': 'Dodatkowy adres IP WLED',
       'volumio_ip': 'Adres IP Volumio',
       'tech_rooms_light': 'Ośw. pom. \ntechnicznych',
+      // Komunikaty błędów
+      'invalid_pin': 'Nieprawidłowy kod PIN',
+      'volume_locked':
+          'Regulacja głośności jest zablokowana w godzinach 00:00 - 06:00',
+      'lighting_control_error': 'Błąd sterowania oświetleniem',
+      'color_update_error': 'Błąd aktualizacji koloru',
+      'color_temp_error': 'Błąd aktualizacji temperatury barwowej',
+      'brightness_error': 'Błąd aktualizacji jasności',
+      // Tryb nocny
+      'night_mode_warning':
+          'Wyłączenie trybu ciszy nocnej spowoduje odblokowanie funkcji multimediów między 22:00 a 6:00. Właściciel jachtu zostanie powiadomiony o zajściu. Właściciel jachtu nie odpowiada za wszelkie konsekwencje prawne wyrządzone poprzez wyłączenie trybu nocnego.',
+      // Overlay profilu
+      'profile_login_instruction':
+          'Aby się zalogować, \nwpisz poniższy kod w aplikacji mobilnej',
     },
     'en': {
       'settings': 'Settings',
@@ -141,14 +156,18 @@ class Translations {
       'continue_question': 'Do you want to continue?',
       'yes': 'Yes',
       'no': 'No',
+      'ok': 'OK',
       'mqtt_broker_ip': 'MQTT Broker Address',
       'mqtt_broker_port': 'MQTT Broker Port',
       'mqtt_username': 'MQTT Username',
       'mqtt_password': 'MQTT Password',
       'wled_ip': 'WLED IP Address',
-      'wled_secondary_ip': 'WLED Secondary IP Address',
+      'wled_secondary_ip': 'Secondary WLED IP',
       'volumio_ip': 'Volumio IP Address',
-      'tech_rooms_light': 'Technical \nRooms Light',
+      'tech_rooms_light': 'Tech Room \nLighting',
+      // Night mode
+      'night_mode_warning':
+          'Disabling night quiet mode will unlock multimedia functions between 22:00 and 6:00. The yacht owner will be notified of this occurrence. The yacht owner is not responsible for any legal consequences caused by disabling night mode.',
     },
     'de': {
       'settings': 'Einstellungen',
@@ -194,9 +213,9 @@ class Translations {
       'right_battery_temp_topic': 'Rechte Batterie-Temperatur-Thema',
       'water_temp_topic': 'Wassertemperatur-Thema',
       'mess_light': 'Messbeleuchtung',
-      'individual_mess_light': 'Individuelle Messbeleuchtung',
-      'kitchen_light': 'Küchenbeleuchtung',
-      'external_light': 'Außenbeleuchtung',
+      'individual_mess_light': 'Individuelle\nMessbeleuchtung',
+      'kitchen_light': 'Küchen\nbeleuchtung',
+      'external_light': 'Außen\nbeleuchtung',
       'connection_settings': 'Verbindungseinstellungen',
       'save_connections': 'Einstellungen speichern',
       'enter_pin': 'PIN-Code eingeben',
@@ -208,9 +227,22 @@ class Translations {
       'mqtt_username': 'MQTT-Benutzername',
       'mqtt_password': 'MQTT-Passwort',
       'wled_ip': 'WLED-IP-Adresse',
-      'wled_secondary_ip': 'WLED-Sekundär-IP-Adresse',
-      'volumio_ip': 'Volumio-IP-Adresse',
-      'tech_rooms_light': 'Beleuchtung der technischen Räume',
+      'wled_secondary_ip': 'Sekundäre WLED IP',
+      'volumio_ip': 'Volumio IP-Adresse',
+      'tech_rooms_light': 'Technikraum \nBeleuchtung',
+      // Error messages
+      'invalid_pin': 'Ungültiger PIN-Code',
+      'volume_locked': 'Lautstärkeregelung ist zwischen 00:00 - 06:00 gesperrt',
+      'lighting_control_error': 'Beleuchtungssteuerungsfehler',
+      'color_update_error': 'Farbaktualisierungsfehler',
+      'color_temp_error': 'Farbtemperatur-Aktualisierungsfehler',
+      'brightness_error': 'Helligkeits-Aktualisierungsfehler',
+      // Profile overlay
+      'profile_login_instruction':
+          'Um sich anzumelden, \ngeben Sie den Code unten in der mobilen App ein',
+      // Night mode
+      'night_mode_warning':
+          'Das Deaktivieren des nächtlichen Ruhemodus wird die Multimedia-Funktionen zwischen 22:00 und 6:00 Uhr freischalten. Der Yachtbesitzer wird über dieses Ereignis benachrichtigt. Der Yachtbesitzer ist nicht verantwortlich für rechtliche Konsequenzen, die durch das Deaktivieren des Nachtmodus verursacht werden.',
     },
     'nl': {
       'settings': 'Instellingen',
@@ -270,9 +302,22 @@ class Translations {
       'mqtt_username': 'MQTT-gebruikersnaam',
       'mqtt_password': 'MQTT-wachtwoord',
       'wled_ip': 'WLED-IP-adres',
-      'wled_secondary_ip': 'WLED secundair IP-adres',
-      'volumio_ip': 'Volumio-IP-adres',
-      'tech_rooms_light': 'Verlichting technische ruimtes',
+      'wled_secondary_ip': 'Secundair WLED IP',
+      'volumio_ip': 'Volumio IP-adres',
+      'tech_rooms_light': 'Technische \nruimte verlichting',
+      // Error messages
+      'invalid_pin': 'Ongeldige PIN-code',
+      'volume_locked': 'Volumeregeling is vergrendeld tussen 00:00 - 06:00',
+      'lighting_control_error': 'Verlichtingsbesturingsfout',
+      'color_update_error': 'Kleur update fout',
+      'color_temp_error': 'Kleurtemperatuur update fout',
+      'brightness_error': 'Helderheid update fout',
+      // Profile overlay
+      'profile_login_instruction':
+          'Om in te loggen, \nvoer de onderstaande code in de mobiele app in',
+      // Night mode
+      'night_mode_warning':
+          'Het uitschakelen van de nachtelijke stille modus zal multimediafuncties tussen 22:00 en 6:00 ontgrendelen. De jachteigenaar wordt op de hoogte gesteld van dit voorval. De jachteigenaar is niet verantwoordelijk voor eventuele juridische gevolgen veroorzaakt door het uitschakelen van de nachtmodus.',
     },
     'it': {
       'settings': 'Impostazioni',
@@ -287,7 +332,7 @@ class Translations {
       'wind': 'Vento',
       'pressure': 'Pressione',
       'water_temp': 'Temp. acqua',
-      'loading_weather': 'Caricamento dati meteo...',
+      'loading_weather': 'Caricamento danych meteo...',
       'weather_error': 'Impossibile caricare i dati meteo',
       'try_again': 'Riprova',
       'media_disabled': 'Media disabilitati',
@@ -332,9 +377,23 @@ class Translations {
       'mqtt_username': 'Nome utente MQTT',
       'mqtt_password': 'Password MQTT',
       'wled_ip': 'Indirizzo IP WLED',
-      'wled_secondary_ip': 'Indirizzo IP secondario WLED',
+      'wled_secondary_ip': 'IP WLED secondario',
       'volumio_ip': 'Indirizzo IP Volumio',
-      'tech_rooms_light': 'Illuminazione locali tecnici',
+      'tech_rooms_light': 'Illuminazione \nsala tecnica',
+      // Error messages
+      'invalid_pin': 'Codice PIN non valido',
+      'volume_locked':
+          'Il controllo del volume è bloccato tra le 00:00 - 06:00',
+      'lighting_control_error': 'Errore controllo illuminazione',
+      'color_update_error': 'Errore aggiornamento colore',
+      'color_temp_error': 'Errore aggiornamento temperatura colore',
+      'brightness_error': 'Errore aggiornamento luminosità',
+      // Profile overlay
+      'profile_login_instruction':
+          'Per accedere, \ninserire il codice sottostante nell\'app mobile',
+      // Night mode
+      'night_mode_warning':
+          'La disattivazione della modalità silenzioso notturno sbloccherà le funzioni multimediali tra le 22:00 e le 6:00. Il proprietario dello yacht verrà notificato di questo evento. Il proprietario dello yacht non è responsabile per eventuali conseguenze legali causate dalla disattivazione della modalità notturna.',
     },
   };
 }
