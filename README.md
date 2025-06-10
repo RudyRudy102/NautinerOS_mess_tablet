@@ -1,6 +1,6 @@
-# nautineros_small_tablet
+# YachtOS Mess
 
-A new Flutter project.
+Aplikacja panelu mesy YachtOS Mess - nowoczesne rozwiązanie do zarządzania systemami jachtu.
 
 ## Getting Started
 

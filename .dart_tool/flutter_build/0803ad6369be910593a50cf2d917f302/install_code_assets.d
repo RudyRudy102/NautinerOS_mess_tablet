@@ -1,1 +1,0 @@
- /Users/patryk/Documents/Code/NautinerOS_mess_tablet/.dart_tool/flutter_build/0803ad6369be910593a50cf2d917f302/native_assets.json: 

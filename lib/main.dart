@@ -12,6 +12,7 @@ import 'widgetpanels.dart';
 import 'sensors.dart';
 import 'headerelements.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
@@ -68,7 +69,7 @@ class MyApp extends StatelessWidget {
         );
 
     return MaterialApp(
-      title: 'Nautineros App',
+      title: 'YachtOS Mess',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -133,6 +134,14 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   late AnimationController _profileSlideController;
   late Animation<double> _profileSlideAnimation;
 
+  bool isMultiroomOverlayVisible = false;
+  late AnimationController _multiroomSlideController;
+  late Animation<double> _multiroomSlideAnimation;
+
+  // Multiroom state
+  bool isMessActive = true; // Mesa jest domyślnie aktywna
+  bool isBridgeActive = false; // Mostek jest nieaktywny
+
   double volume = 0.5;
   double _previousVolume = 0.5;
   bool isNightModeActive = false;
@@ -195,6 +204,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   String button4Topic = '';
   String button5Topic = '';
   String button6Topic = '';
+  String mesaMultiroomTopic = 'nautiner/multiroom/mesa';
+  String bridgeMultiroomTopic = 'nautiner/multiroom/bridge';
   String volumioIp = '';
   String wledIp = '';
   String wledSecondaryIp = '';
@@ -212,6 +223,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   final TextEditingController button4TopicController = TextEditingController();
   final TextEditingController button5TopicController = TextEditingController();
   final TextEditingController button6TopicController = TextEditingController();
+  final TextEditingController mesaMultiroomTopicController =
+      TextEditingController();
+  final TextEditingController bridgeMultiroomTopicController =
+      TextEditingController();
   final TextEditingController volumioController = TextEditingController();
   final TextEditingController wledController = TextEditingController();
   final TextEditingController wledSecondaryController = TextEditingController();
@@ -246,10 +261,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   double blackWaterLevel = 70;
   double fuelLevel = 60;
 
-  String cleanWaterTopic = 'nautiner/tanks/clean_water';
-  String greyWaterTopic = 'nautiner/tanks/grey_water';
-  String blackWaterTopic = 'nautiner/tanks/black_water';
-  String fuelTopic = 'nautiner/tanks/fuel';
+  String cleanWaterTopic = 'N2K/Tank0';
+  String greyWaterTopic = 'N2K/Tank3';
+  String blackWaterTopic = 'N2K/Tank1';
+  String fuelTopic = 'N2K/Tank2';
 
   final TextEditingController cleanWaterTopicController =
       TextEditingController();
@@ -266,12 +281,12 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
   // Temperatura wody z MQTT
   double waterTemperature = 15.0;
-  String waterTemperatureTopic = 'nautiner/sensors/water_temperature';
+  String waterTemperatureTopic = 'N2K/WaterTemp';
 
-  String engineRoomTempTopic = 'nautiner/temperature/engine_room';
-  String chargerTempTopic = 'nautiner/temperature/charger';
-  String leftBatteryTempTopic = 'nautiner/temperature/left_battery';
-  String rightBatteryTempTopic = 'nautiner/temperature/right_battery';
+  String engineRoomTempTopic = 'N2K/Temp1';
+  String chargerTempTopic = 'N2K/Temp0';
+  String leftBatteryTempTopic = 'N2K/Temp2';
+  String rightBatteryTempTopic = 'N2K/Temp3';
 
   final TextEditingController engineRoomTempTopicController =
       TextEditingController();
@@ -289,12 +304,12 @@ class _FixedSizeAppState extends State<FixedSizeApp>
   double battery48VLevel = 80;
   double battery48VVoltage = 47.8;
 
-  String battery12VLevelTopic = 'nautiner/batteries/12v/level';
-  String battery12VVoltageTopic = 'nautiner/batteries/12v/voltage';
-  String battery24VLevelTopic = 'nautiner/batteries/24v/level';
-  String battery24VVoltageTopic = 'nautiner/batteries/24v/voltage';
-  String battery48VLevelTopic = 'nautiner/batteries/48v/level';
-  String battery48VVoltageTopic = 'nautiner/batteries/48v/voltage';
+  String battery12VLevelTopic = 'N2K/12V/SOC';
+  String battery12VVoltageTopic = 'N2K/12V/Voltage';
+  String battery24VLevelTopic = 'N2K/24V/SOC';
+  String battery24VVoltageTopic = 'N2K/24V/Voltage';
+  String battery48VLevelTopic = 'Battery/SOC';
+  String battery48VVoltageTopic = 'Battery/Voltage';
 
   final TextEditingController battery12VLevelTopicController =
       TextEditingController();
@@ -387,6 +402,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       reverseCurve: Curves.easeIn,
     ));
 
+    _multiroomSlideController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _multiroomSlideAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _multiroomSlideController,
+      curve: Curves.easeOut,
+      reverseCurve: Curves.easeIn,
+    ));
+
     _initializeWebView();
 
     _fetchWeatherData();
@@ -433,6 +461,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     battery48VVoltageTopicController.text = battery48VVoltageTopic;
     profileCodeTopicController.text = profileCodeTopic;
     waterTemperatureTopicController.text = waterTemperatureTopic;
+    mesaMultiroomTopicController.text = mesaMultiroomTopic;
+    bridgeMultiroomTopicController.text = bridgeMultiroomTopic;
 
     _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
       if (mounted) {
@@ -549,6 +579,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       chargerTemp: chargerTemp,
       leftBatteryTemp: leftBatteryTemp,
       rightBatteryTemp: rightBatteryTemp,
+      getInterfaceColor: getInterfaceColor,
     );
   }
 
@@ -568,6 +599,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       chargerTemp: chargerTemp,
       leftBatteryTemp: leftBatteryTemp,
       rightBatteryTemp: rightBatteryTemp,
+      getInterfaceColor: getInterfaceColor,
     );
   }
 
@@ -653,6 +685,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     _volumeSlideController.dispose();
     _nightModeSlideController.dispose();
     _profileSlideController.dispose();
+    _multiroomSlideController.dispose();
 
     cleanWaterTopicController.dispose();
     greyWaterTopicController.dispose();
@@ -670,6 +703,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     battery24VVoltageTopicController.dispose();
     battery48VLevelTopicController.dispose();
     battery48VVoltageTopicController.dispose();
+    mesaMultiroomTopicController.dispose();
+    bridgeMultiroomTopicController.dispose();
 
     _clockTimer.cancel();
 
@@ -798,7 +833,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            cleanWaterLevel = value;
+            cleanWaterLevel = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -810,7 +845,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            greyWaterLevel = value;
+            greyWaterLevel = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -822,7 +857,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            blackWaterLevel = value;
+            blackWaterLevel = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -834,7 +869,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            fuelLevel = value;
+            fuelLevel = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -846,7 +881,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            engineRoomTemp = value;
+            engineRoomTemp = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -858,7 +893,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            chargerTemp = value;
+            chargerTemp = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -870,7 +905,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            leftBatteryTemp = value;
+            leftBatteryTemp = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -882,7 +917,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            rightBatteryTemp = value;
+            rightBatteryTemp = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
         } catch (e) {
@@ -892,7 +927,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
       _mqttService.subscribeToTopic(battery12VLevelTopic, (topic, message) {
         try {
-          final value = double.parse(message);
+          double value;
+          if (message.startsWith('[')) {
+            // Jeśli wiadomość jest tablicą JSON, weź pierwszą wartość
+            final decoded = json.decode(message);
+            if (decoded is List && decoded.isNotEmpty) {
+              value = double.parse(decoded[0].toString());
+            } else {
+              throw Exception('Pusta tablica lub nieprawidłowy format');
+            }
+          } else {
+            // Jeśli wiadomość jest pojedynczą wartością
+            value = double.parse(message);
+          }
           setState(() {
             battery12VLevel = value;
           });
@@ -904,7 +951,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
       _mqttService.subscribeToTopic(battery12VVoltageTopic, (topic, message) {
         try {
-          final value = double.parse(message);
+          double value;
+          if (message.startsWith('[')) {
+            // Jeśli wiadomość jest tablicą JSON, weź pierwszą wartość
+            final decoded = json.decode(message);
+            if (decoded is List && decoded.isNotEmpty) {
+              value = double.parse(decoded[0].toString());
+            } else {
+              throw Exception('Pusta tablica lub nieprawidłowy format');
+            }
+          } else {
+            // Jeśli wiadomość jest pojedynczą wartością
+            value = double.parse(message);
+          }
           setState(() {
             battery12VVoltage = value;
           });
@@ -916,7 +975,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
       _mqttService.subscribeToTopic(battery24VLevelTopic, (topic, message) {
         try {
-          final value = double.parse(message);
+          double value;
+          if (message.startsWith('[')) {
+            // Jeśli wiadomość jest tablicą JSON, weź pierwszą wartość
+            final decoded = json.decode(message);
+            if (decoded is List && decoded.isNotEmpty) {
+              value = double.parse(decoded[0].toString());
+            } else {
+              throw Exception('Pusta tablica lub nieprawidłowy format');
+            }
+          } else {
+            // Jeśli wiadomość jest pojedynczą wartością
+            value = double.parse(message);
+          }
           setState(() {
             battery24VLevel = value;
           });
@@ -928,7 +999,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
       _mqttService.subscribeToTopic(battery24VVoltageTopic, (topic, message) {
         try {
-          final value = double.parse(message);
+          double value;
+          if (message.startsWith('[')) {
+            // Jeśli wiadomość jest tablicą JSON, weź pierwszą wartość
+            final decoded = json.decode(message);
+            if (decoded is List && decoded.isNotEmpty) {
+              value = double.parse(decoded[0].toString());
+            } else {
+              throw Exception('Pusta tablica lub nieprawidłowy format');
+            }
+          } else {
+            // Jeśli wiadomość jest pojedynczą wartością
+            value = double.parse(message);
+          }
           setState(() {
             battery24VVoltage = value;
           });
@@ -940,7 +1023,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
       _mqttService.subscribeToTopic(battery48VLevelTopic, (topic, message) {
         try {
-          final value = double.parse(message);
+          double value;
+          if (message.startsWith('[')) {
+            // Jeśli wiadomość jest tablicą JSON, weź pierwszą wartość
+            final decoded = json.decode(message);
+            if (decoded is List && decoded.isNotEmpty) {
+              value = double.parse(decoded[0].toString());
+            } else {
+              throw Exception('Pusta tablica lub nieprawidłowy format');
+            }
+          } else {
+            // Jeśli wiadomość jest pojedynczą wartością
+            value = double.parse(message);
+          }
           setState(() {
             battery48VLevel = value;
           });
@@ -952,7 +1047,19 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
       _mqttService.subscribeToTopic(battery48VVoltageTopic, (topic, message) {
         try {
-          final value = double.parse(message);
+          double value;
+          if (message.startsWith('[')) {
+            // Jeśli wiadomość jest tablicą JSON, weź pierwszą wartość
+            final decoded = json.decode(message);
+            if (decoded is List && decoded.isNotEmpty) {
+              value = double.parse(decoded[0].toString());
+            } else {
+              throw Exception('Pusta tablica lub nieprawidłowy format');
+            }
+          } else {
+            // Jeśli wiadomość jest pojedynczą wartością
+            value = double.parse(message);
+          }
           setState(() {
             battery48VVoltage = value;
           });
@@ -966,7 +1073,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         try {
           final value = double.parse(message);
           setState(() {
-            waterTemperature = value;
+            waterTemperature = value.isNaN ? 0.0 : value;
           });
           _updateSensorPanels();
           // Odśwież dane pogodowe z nową temperaturą wody
@@ -1181,6 +1288,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         battery48VVoltageTopicController.text = battery48VVoltageTopic;
         profileCodeTopicController.text = profileCodeTopic;
         waterTemperatureTopicController.text = waterTemperatureTopic;
+        mesaMultiroomTopicController.text = mesaMultiroomTopic;
+        bridgeMultiroomTopicController.text = bridgeMultiroomTopic;
 
         _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
           if (mounted) {
@@ -1244,6 +1353,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         button4: button4TopicController.text,
         button5: button5TopicController.text,
         button6: button6TopicController.text,
+        mesaMultiroom: mesaMultiroomTopicController.text,
+        bridgeMultiroom: bridgeMultiroomTopicController.text,
       );
 
       // Aktualizacja tematów zbiorników
@@ -1270,6 +1381,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       // Aktualizacja tematu kodu profilu
       profileCodeTopic = profileCodeTopicController.text;
 
+      // Aktualizacja tematów multiroom
+      mesaMultiroomTopic = mesaMultiroomTopicController.text;
+      bridgeMultiroomTopic = bridgeMultiroomTopicController.text;
+
       // Aktualizacja konfiguracji Volumio
       _volumioService.updateHost(volumioController.text);
 
@@ -1284,6 +1399,24 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     _initializeMQTT();
     _updateVolumiPlayerState();
     _initializeWLED();
+  }
+
+  void _showMultiroomOverlay() {
+    setState(() {
+      isMultiroomOverlayVisible = true;
+    });
+    _multiroomSlideController.reset();
+    _multiroomSlideController.forward();
+  }
+
+  void _closeMultiroomOverlay() {
+    _multiroomSlideController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          isMultiroomOverlayVisible = false;
+        });
+      }
+    });
   }
 
   void updateVolume(double newVolume) async {
@@ -1707,7 +1840,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   left: horizontalOffset +
                       centralContainerX -
                       sideContainerWidth -
-                      100 * buttonScale,
+                      100 * buttonScale +
+                      33,
                   child: _sensorPanels.buildBatteryPanel(
                     buttonScale: buttonScale,
                     sideContainerWidth: sideContainerWidth,
@@ -1724,7 +1858,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   left: horizontalOffset +
                       centralContainerX -
                       sideContainerWidth -
-                      100 * buttonScale,
+                      100 * buttonScale +
+                      33,
                   child: _sensorPanels.buildTanksPanel(
                     buttonScale: buttonScale,
                     sideContainerWidth: sideContainerWidth,
@@ -1743,7 +1878,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                   left: horizontalOffset +
                       centralContainerX -
                       sideContainerWidth -
-                      100 * buttonScale,
+                      100 * buttonScale +
+                      33,
                   child: _sensorPanels.buildTemperaturePanel(
                     buttonScale: buttonScale,
                     sideContainerWidth: sideContainerWidth,
@@ -1851,7 +1987,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                 // Dodanie linii rozdzielającej między kolumnami przycisków
                 Positioned(
                   top: verticalOffset + 205 * buttonScale,
-                  left: 1642 * buttonScale,
+                  left: 1642 * buttonScale - 55,
                   child: Container(
                     width: 3,
                     height: buttonHeight * 2.54 +
@@ -2124,7 +2260,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                         ),
                         SizedBox(height: height * 0.006),
                         Text(
-                          'Ambient',
+                          'Ambiente',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: fontSize * 0.75,
@@ -2222,6 +2358,10 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                           color: const Color.fromRGBO(255, 255, 255, 0),
                           child: InkWell(
                             onTap: null,
+                            onLongPress: () {
+                              _playClickSound();
+                              _showMultiroomOverlay();
+                            },
                             child: Container(
                               width: volumeBarWidth * 0.7,
                               height:
@@ -2273,26 +2413,23 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                           ),
                         ),
                         SizedBox(
-                            width: volumeBarWidth * 0.025), // Zwiększony odstęp
+                            width: volumeBarWidth * 0.015), // Zwiększony odstęp
                         GestureDetector(
                           onTap: toggleNightMode,
                           child: Container(
-                            width: volumeBarWidth * 0.19,
+                            width: volumeBarWidth * 0.2,
                             height:
-                                90 * buttonScale, // Dokładnie 90px wysokości
+                                110 * buttonScale, // Dokładnie 90px wysokości
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: const Color.fromARGB(0, 255, 255, 255),
                               borderRadius:
                                   BorderRadius.circular(28.39 * buttonScale),
                             ),
                             child: Center(
-                              child: Icon(
-                                FontAwesomeIcons.moon,
-                                color: isNightModeActive
-                                    ? _nightModeWarningColor ??
-                                        const Color.fromARGB(255, 0, 0, 0)
-                                    : const Color.fromARGB(255, 0, 0, 0),
-                                size: 55 * buttonScale, // Zwiększona ikona
+                              child: Image.asset(
+                                'assets/images/Leon.png',
+                                width: 110 * buttonScale,
+                                height: 120 * buttonScale,
                               ),
                             ),
                           ),
@@ -2303,6 +2440,33 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                 ),
 
                 // Elementy overlay
+                if (isMultiroomOverlayVisible) ...[
+                  // Backdrop (tło) z animacją dissolve
+                  AnimatedBuilder(
+                    animation: _multiroomSlideController,
+                    builder: (context, child) {
+                      return Positioned.fill(
+                        child: Opacity(
+                          opacity: _multiroomSlideAnimation.value *
+                              0.3, // 30% opacity backdrop
+                          child: GestureDetector(
+                            onTap: _closeMultiroomOverlay,
+                            child: Container(
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  // Właściwy overlay
+                  _buildMultiroomOverlay(
+                    volumeBarX: volumeBarX,
+                    volumeBarWidth: volumeBarWidth,
+                    buttonScale: buttonScale,
+                    verticalOffset: verticalOffset,
+                  ),
+                ],
                 if (isAmbientOverlayVisible)
                   Positioned.fill(
                     child: buildAmbientLightOverlay(),
@@ -2678,6 +2842,80 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                             ),
                                           ),
                                           SizedBox(height: height * 0.018),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: height * 0.025),
+                                Text(
+                                  LanguageService.translate('multiroom_topics'),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: fontSize * 0.7,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: height * 0.018),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          TextField(
+                                            controller:
+                                                mesaMultiroomTopicController,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  LanguageService.translate(
+                                                      'mesa_multiroom_topic'),
+                                              labelStyle: const TextStyle(
+                                                  color: Colors.white70),
+                                              enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white54),
+                                              ),
+                                              focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: width * 0.02),
+                                    Expanded(
+                                      child: Column(
+                                        children: [
+                                          TextField(
+                                            controller:
+                                                bridgeMultiroomTopicController,
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                            decoration: InputDecoration(
+                                              labelText:
+                                                  LanguageService.translate(
+                                                      'bridge_multiroom_topic'),
+                                              labelStyle: const TextStyle(
+                                                  color: Colors.white70),
+                                              enabledBorder:
+                                                  const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white54),
+                                              ),
+                                              focusedBorder:
+                                                  const UnderlineInputBorder(
+                                                borderSide: BorderSide(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -3940,6 +4178,187 @@ class _FixedSizeAppState extends State<FixedSizeApp>
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildMultiroomOverlay({
+    required double volumeBarX,
+    required double volumeBarWidth,
+    required double buttonScale,
+    required double verticalOffset,
+  }) {
+    final fontSize = buttonScale * 29.0;
+    final buttonWidth = 153 * buttonScale;
+    final buttonHeight = 147 * buttonScale;
+
+    return Positioned(
+      bottom: verticalOffset +
+          90 * buttonScale +
+          130 * buttonScale +
+          20, // 20px nad suwakiem głośności
+      left: volumeBarX +
+          (volumeBarWidth - 410 * buttonScale) /
+              2, // Wyśrodkowanie relative do volumeBar z nowym rozmiarem
+      child: AnimatedBuilder(
+        animation: _multiroomSlideController,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _multiroomSlideAnimation.value,
+            child: Container(
+              width: 410 * buttonScale, // Zwiększony rozmiar do 410px (+50px)
+              height: 240 * buttonScale, // Zwiększona wysokość do 240px (+50px)
+              padding: EdgeInsets.all(15 * buttonScale),
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(30, 30, 30, 0.95),
+                borderRadius: BorderRadius.circular(28.39 * buttonScale),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Nagłówek z przyciskiem zamknięcia
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: fontSize * 0.6,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _closeMultiroomOverlay,
+                        child: Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 20 * buttonScale,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Przyciski multiroom
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Przycisk Mesa
+                      GestureDetector(
+                        onTap: () {
+                          _playClickSound();
+                          setState(() {
+                            isMessActive =
+                                !isMessActive; // Toggle zamiast wyłącznego wyboru
+                          });
+                          // Wyślij komendę MQTT dla Mesa (device ID 7)
+                          _mqttService.sendCommand(7, isMessActive ? 1 : 0);
+                        },
+                        child: Column(
+                          children: [
+                            Container(
+                              width: buttonWidth,
+                              height: buttonHeight,
+                              decoration: BoxDecoration(
+                                color: isMessActive
+                                    ? getInterfaceColor(true)
+                                    : getInterfaceColor(false),
+                                borderRadius:
+                                    BorderRadius.circular(28.39 * buttonScale),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.dining,
+                                    color: isMessActive
+                                        ? getInterfaceIconColor(true)
+                                        : getInterfaceIconColor(false),
+                                    size: 45 * buttonScale,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                                height: 6 *
+                                    buttonScale), // Odstęp jak w przyciskach oświetlenia
+                            Text(
+                              'Mesa',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: fontSize * 0.75,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Przycisk Mostek
+                      GestureDetector(
+                        onTap: () {
+                          _playClickSound();
+                          setState(() {
+                            isBridgeActive =
+                                !isBridgeActive; // Toggle zamiast wyłącznego wyboru
+                          });
+                          // Wyślij komendę MQTT dla Mostek (device ID 8)
+                          _mqttService.sendCommand(8, isBridgeActive ? 1 : 0);
+                        },
+                        child: Column(
+                          children: [
+                            Container(
+                              width: buttonWidth,
+                              height: buttonHeight,
+                              decoration: BoxDecoration(
+                                color: isBridgeActive
+                                    ? getInterfaceColor(true)
+                                    : getInterfaceColor(false),
+                                borderRadius:
+                                    BorderRadius.circular(28.39 * buttonScale),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.directions_boat,
+                                    color: isBridgeActive
+                                        ? getInterfaceIconColor(true)
+                                        : getInterfaceIconColor(false),
+                                    size: 45 * buttonScale,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                                height: 6 *
+                                    buttonScale), // Odstęp jak w przyciskach oświetlenia
+                            Text(
+                              'Mostek',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: fontSize * 0.75,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

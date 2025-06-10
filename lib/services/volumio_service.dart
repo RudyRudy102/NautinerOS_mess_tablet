@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class VolumioService {
   static const String defaultHost =
-      '192.168.68.64'; // Domyślny adres IP Volumio, zastąp swoim
+      '192.168.1.165'; // Domyślny adres IP Volumio, zastąp swoim
   static const int defaultPort = 3000; // Domyślny port Volumio
 
   String _host;

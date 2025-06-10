@@ -1,5 +1,5 @@
-name: nautineros_mess_tablet
-description: "Aplikacja panelu mesy NautinerOS"
+name: yachtos_mess
+description: "Aplikacja panelu mesy YachtOS Mess"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -39,7 +39,7 @@ flutter:
   assets:
     - assets/images/
     - assets/sounds/
-  
+
   fonts:
     - family: MaterialIcons
       fonts:

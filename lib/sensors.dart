@@ -23,6 +23,9 @@ class SensorPanels {
   final double leftBatteryTemp;
   final double rightBatteryTemp;
 
+  // Funkcja do kolorów interfejsu
+  final Color Function(bool) getInterfaceColor;
+
   const SensorPanels({
     required this.battery12VLevel,
     required this.battery12VVoltage,
@@ -38,6 +41,7 @@ class SensorPanels {
     required this.chargerTemp,
     required this.leftBatteryTemp,
     required this.rightBatteryTemp,
+    required this.getInterfaceColor,
   });
 
   // Panel z bateriami
@@ -50,7 +54,7 @@ class SensorPanels {
       width: sideContainerWidth,
       height: batteryContainerHeight,
       decoration: ShapeDecoration(
-        color: const Color(0xFF6F7074),
+        color: getInterfaceColor(false),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(27.88 * buttonScale),
         ),
@@ -59,11 +63,10 @@ class SensorPanels {
         children: [
           // Zawartość panelu baterii
           Positioned(
-            left: 34 * buttonScale,
             top: 15 * buttonScale,
-            child: SizedBox(
-              width: 120 * buttonScale,
-              height: 30 * buttonScale,
+            left: 0,
+            right: 0,
+            child: Center(
               child: Text(
                 LanguageService.translate('batteries'),
                 style: TextStyle(
@@ -124,7 +127,7 @@ class SensorPanels {
       width: sideContainerWidth,
       height: tanksContainerHeight,
       decoration: ShapeDecoration(
-        color: const Color(0xFF6F7074),
+        color: getInterfaceColor(false),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(27.87 * buttonScale),
         ),
@@ -132,11 +135,10 @@ class SensorPanels {
       child: Stack(
         children: [
           Positioned(
-            left: 29 * buttonScale,
             top: 12 * buttonScale,
-            child: SizedBox(
-              width: 175.10 * buttonScale,
-              height: 27.01 * buttonScale,
+            left: 0,
+            right: 0,
+            child: Center(
               child: Text(
                 LanguageService.translate('tanks'),
                 style: TextStyle(
@@ -215,7 +217,7 @@ class SensorPanels {
       width: sideContainerWidth,
       height: tempContainerHeight,
       decoration: ShapeDecoration(
-        color: const Color(0xFF6F7074),
+        color: getInterfaceColor(false),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(27.87 * buttonScale),
         ),
@@ -223,11 +225,10 @@ class SensorPanels {
       child: Stack(
         children: [
           Positioned(
-            left: 29 * buttonScale,
             top: 12 * buttonScale,
-            child: SizedBox(
-              width: 480 * buttonScale,
-              height: 27.01 * buttonScale,
+            left: 0,
+            right: 0,
+            child: Center(
               child: Text(
                 LanguageService.translate('tech_rooms_temps'),
                 style: TextStyle(
@@ -473,7 +474,7 @@ class SensorPanels {
                 ),
               ),
               Text(
-                '${voltage.toStringAsFixed(1)} V',
+                '${voltage.toStringAsFixed(2)} V',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: 16.41,

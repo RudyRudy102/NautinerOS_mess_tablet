@@ -482,13 +482,13 @@
       "languageVersion": "3.2"
     },
     {
-      "name": "nautineros_mess_tablet",
+      "name": "yachtos_mess",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     }
   ],
-  "generated": "2025-05-25T18:32:14.456456Z",
+  "generated": "2025-06-09T15:10:19.450748Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///Users/patryk/Documents/Code/flutter",

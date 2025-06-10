@@ -4,18 +4,20 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 class MQTTService {
-  String _broker = '192.168.68.65';
+  String _broker = '192.168.1.23';
   int _port = 1883;
   String _username = 'mqtt';
   String _password = 'mqtt';
 
   // Konfigurowalne tematy MQTT dla każdej lampy
   String cabinLightTopic = 'home/livingroom/light';
-  String nightLightTopic = 'home/bedroom/light';
-  String ambientLightTopic = 'home/ambient/light';
-  String button4Topic = 'home/button4/light';
-  String button5Topic = 'home/button5/light';
-  String button6Topic = 'home/button6/light';
+  String nightLightTopic = 'lights/deckm';
+  String ambientLightTopic = 'lights/mesa';
+  String button4Topic = 'lights/mesapkt';
+  String button5Topic = 'lights/kuchnia';
+  String button6Topic = 'lights/tech';
+  String mesaMultiroomTopic = 'nautiner/multiroom/mesa';
+  String bridgeMultiroomTopic = 'nautiner/multiroom/bridge';
 
   // Inicjalizacja klienta z domyślnymi wartościami
   MqttServerClient client = MqttServerClient('', '');
@@ -77,6 +79,8 @@ class MQTTService {
     String? button4,
     String? button5,
     String? button6,
+    String? mesaMultiroom,
+    String? bridgeMultiroom,
   }) {
     if (cabinLight != null) cabinLightTopic = cabinLight;
     if (nightLight != null) nightLightTopic = nightLight;
@@ -84,6 +88,8 @@ class MQTTService {
     if (button4 != null) button4Topic = button4;
     if (button5 != null) button5Topic = button5;
     if (button6 != null) button6Topic = button6;
+    if (mesaMultiroom != null) mesaMultiroomTopic = mesaMultiroom;
+    if (bridgeMultiroom != null) bridgeMultiroomTopic = bridgeMultiroom;
   }
 
   // Generowanie losowego identyfikatora klienta
@@ -244,6 +250,12 @@ class MQTTService {
           break;
         case 6:
           topic = '$button6Topic/set';
+          break;
+        case 7:
+          topic = '$mesaMultiroomTopic/set';
+          break;
+        case 8:
+          topic = '$bridgeMultiroomTopic/set';
           break;
         default:
           print('Invalid device ID: $deviceId');

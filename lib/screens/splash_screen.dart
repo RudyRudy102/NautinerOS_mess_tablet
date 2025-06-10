@@ -47,7 +47,7 @@ class SplashScreen extends StatelessWidget {
                   bottom: 30,
                   child: Center(
                     child: Text(
-                      'Powered by NautinerOS 1.0 Śniardwy',
+                      'Powered by YachtOS 25 Śniardwy',
                       style: TextStyle(
                         fontFamily: 'SourceSansPro',
                         fontSize: 25,
