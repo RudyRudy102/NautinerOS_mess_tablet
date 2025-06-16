@@ -1,0 +1,18 @@
+"/Users/patryk/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.20.0/darwin/webview_flutter_wkwebview/Sources/webview_flutter_wkwebview/UIDelegateProxyAPIDelegate.swift":
+  diagnostics: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/UIDelegateProxyAPIDelegate.dia"
+  swift-dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/UIDelegateProxyAPIDelegate.swiftdeps"
+  dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/UIDelegateProxyAPIDelegate.d"
+  object: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/UIDelegateProxyAPIDelegate.o"
+  const-values: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/UIDelegateProxyAPIDelegate.swiftconstvalues"
+"/Users/patryk/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.20.0/darwin/webview_flutter_wkwebview/Sources/webview_flutter_wkwebview/SecWrappers.swift":
+  dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/SecWrappers.d"
+  diagnostics: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/SecWrappers.dia"
+  const-values: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/SecWrappers.swiftconstvalues"
+  object: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/SecWrappers.o"
+  swift-dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/SecWrappers.swiftdeps"
+"/Users/patryk/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.20.0/darwin/webview_flutter_wkwebview/Sources/webview_flutter_wkwebview/StructWrappers.swift":
+  swift-dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/StructWrappers.swiftdeps"
+  const-values: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/StructWrappers.swiftconstvalues"
+  diagnostics: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/StructWrappers.dia"
+  dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/StructWrappers.d"
+  object: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/StructWrappers.o"

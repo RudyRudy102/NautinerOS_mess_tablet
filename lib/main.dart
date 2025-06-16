@@ -37,31 +37,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final customTextTheme = Theme.of(context).textTheme.copyWith(
           displayLarge: const TextStyle(
-            fontFamily: 'SourceSansPro-Regular',
             fontSize: 60,
             fontWeight: FontWeight.w400,
             color: Colors.white,
           ),
           displayMedium: const TextStyle(
-            fontFamily: 'SourceSansPro-Regular',
             fontSize: 50,
             fontWeight: FontWeight.w400,
             color: Colors.white,
           ),
           bodyLarge: const TextStyle(
-            fontFamily: 'SourceSansPro-Regular',
             fontSize: 28,
             fontWeight: FontWeight.w400,
             color: Colors.white,
           ),
           bodyMedium: const TextStyle(
-            fontFamily: 'SourceSansPro-Regular',
             fontSize: 18,
             fontWeight: FontWeight.w400,
             color: Colors.white,
           ),
           labelLarge: const TextStyle(
-            fontFamily: 'SourceSansPro-Regular',
             fontSize: 16,
             fontWeight: FontWeight.w400,
             color: Colors.white70,
@@ -75,7 +70,6 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
         textTheme: customTextTheme,
-        fontFamily: 'SourceSansPro-Regular',
       ),
       home: const SplashScreenWrapper(),
     );
@@ -350,14 +344,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
       ),
     );
 
-    _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
-      if (mounted) {
-        setState(() {
-          profileCode = message;
-        });
-      }
-    });
-
     ambientColor = const Color.fromRGBO(67, 83, 255, 1);
     syncInterfaceColor = true;
     pageController = PageController(initialPage: 0, viewportFraction: 1.0);
@@ -419,7 +405,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
 
     _fetchWeatherData();
 
-    _weatherRefreshTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+    _weatherRefreshTimer = Timer.periodic(const Duration(minutes: 10), (_) {
       _fetchWeatherData();
     });
 
@@ -434,7 +420,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     mqttBrokerController.text = _mqttService.host;
     volumioController.text = _volumioService.host;
 
-    _wledService = WLEDService(ip: '192.168.68.70');
+    _wledService = WLEDService(ip: '192.168.1.245');
     wledController.text = _wledService.ip;
 
     _initializeWLED();
@@ -625,6 +611,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           curve: Curves.easeInOut,
         );
       },
+      getInterfaceIconColor: getInterfaceIconColor,
     );
   }
 
@@ -650,6 +637,7 @@ class _FixedSizeAppState extends State<FixedSizeApp>
           curve: Curves.easeInOut,
         );
       },
+      getInterfaceIconColor: getInterfaceIconColor,
     );
   }
 
@@ -1291,13 +1279,8 @@ class _FixedSizeAppState extends State<FixedSizeApp>
         mesaMultiroomTopicController.text = mesaMultiroomTopic;
         bridgeMultiroomTopicController.text = bridgeMultiroomTopic;
 
-        _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
-          if (mounted) {
-            setState(() {
-              profileCode = message;
-            });
-          }
-        });
+        // Nie subskrybuj ponownie - temat jest już subskrybowany w initState()
+        // Profile code będzie automatycznie aktualizowany przez istniejący callback
       });
     } else {
       // Pokaż komunikat o nieprawidłowym PINie
@@ -1651,20 +1634,13 @@ class _FixedSizeAppState extends State<FixedSizeApp>
     // Rozpocznij animację pokazywania
     _profileSlideController.forward();
 
-    // Nasłuchuj MQTT aby uzyskać aktualny kod
-    _mqttService.subscribeToTopic(profileCodeTopic, (topic, message) {
-      if (mounted) {
-        setState(() {
-          profileCode = message;
-        });
-      }
-    });
+    // Nie subskrybuj ponownie - temat jest już subskrybowany w initState()
+    // Profile code będzie automatycznie aktualizowany przez istniejący callback
   }
 
   void _closeProfileOverlay() {
     print("DEBUG: _closeProfileOverlay() wywołane");
-    // Anuluj subskrypcję MQTT przed zamknięciem overlaya
-    _mqttService.unsubscribeFromTopic(profileCodeTopic);
+    // Nie anuluj subskrypcji - pozostaw ją aktywną dla przyszłych aktualizacji
 
     // Animuj zamknięcie overlaya
     _profileSlideController.reverse().then((_) {
@@ -3486,8 +3462,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                                   style: const TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 24,
-                                                    fontFamily:
-                                                        'SourceSansPro-Regular',
                                                     fontWeight: FontWeight.w700,
                                                     height: 1.42,
                                                   ),
@@ -3596,7 +3570,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                                 style: const TextStyle(
                                                   color: Colors.white,
                                                   fontSize: 22,
-                                                  fontFamily: 'Roboto',
                                                   fontWeight: FontWeight.w600,
                                                   height: 1.4,
                                                 ),
@@ -3613,7 +3586,6 @@ class _FixedSizeAppState extends State<FixedSizeApp>
                                           style: const TextStyle(
                                             color: Colors.red,
                                             fontSize: 20,
-                                            fontFamily: 'Roboto',
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),

@@ -72,7 +72,6 @@ class SensorPanels {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 28 * buttonScale,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -144,7 +143,6 @@ class SensorPanels {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 25 * buttonScale,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -234,7 +232,6 @@ class SensorPanels {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 22 * buttonScale,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -314,7 +311,6 @@ class SensorPanels {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -325,7 +321,6 @@ class SensorPanels {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 25,
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -366,7 +361,6 @@ class SensorPanels {
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
                 fontSize: 16.40,
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -375,7 +369,6 @@ class SensorPanels {
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
                 fontSize: 16.40,
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -394,12 +387,12 @@ class SensorPanels {
     required double width,
   }) {
     Color getBatteryColor(double level) {
-      if (level > 70) {
-        return const Color(0xFF00FF48);
-      } else if (level > 30) {
-        return const Color(0xFFFFA500);
+      if (level >= 40) {
+        return const Color(0xFF00FF48); // Zielony od 40%
+      } else if (level >= 20) {
+        return const Color(0xFFFFA500); // Pomarańczowy między 20-40%
       } else {
-        return const Color(0xFFFF0000);
+        return const Color(0xFFFF0000); // Czerwony od 0-20%
       }
     }
 
@@ -418,7 +411,6 @@ class SensorPanels {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18.90,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -428,7 +420,6 @@ class SensorPanels {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 25.79,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -465,11 +456,10 @@ class SensorPanels {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Napięcie baterii',
+                LanguageService.translate('battery_voltage'),
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: 16.41,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -478,7 +468,6 @@ class SensorPanels {
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: 16.41,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -509,7 +498,6 @@ class SensorPanels {
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
-                  fontFamily: 'Roboto',
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -520,7 +508,6 @@ class SensorPanels {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 25,
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -581,7 +568,6 @@ class SensorPanels {
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
                 fontSize: 14,
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -590,7 +576,6 @@ class SensorPanels {
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
                 fontSize: 14,
-                fontFamily: 'Roboto',
                 fontWeight: FontWeight.w500,
               ),
             ),

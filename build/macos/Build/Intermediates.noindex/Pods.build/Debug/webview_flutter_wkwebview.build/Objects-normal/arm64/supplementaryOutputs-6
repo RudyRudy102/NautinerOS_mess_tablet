@@ -1,0 +1,18 @@
+"/Users/patryk/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.20.0/darwin/webview_flutter_wkwebview/Sources/webview_flutter_wkwebview/ProxyAPIRegistrar.swift":
+  const-values: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ProxyAPIRegistrar.swiftconstvalues"
+  diagnostics: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ProxyAPIRegistrar.dia"
+  dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ProxyAPIRegistrar.d"
+  swift-dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ProxyAPIRegistrar.swiftdeps"
+  object: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ProxyAPIRegistrar.o"
+"/Users/patryk/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.20.0/darwin/webview_flutter_wkwebview/Sources/webview_flutter_wkwebview/ScriptMessageHandlerProxyAPIDelegate.swift":
+  diagnostics: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ScriptMessageHandlerProxyAPIDelegate.dia"
+  dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ScriptMessageHandlerProxyAPIDelegate.d"
+  object: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ScriptMessageHandlerProxyAPIDelegate.o"
+  const-values: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ScriptMessageHandlerProxyAPIDelegate.swiftconstvalues"
+  swift-dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/ScriptMessageHandlerProxyAPIDelegate.swiftdeps"
+"/Users/patryk/.pub-cache/hosted/pub.dev/webview_flutter_wkwebview-3.20.0/darwin/webview_flutter_wkwebview/Sources/webview_flutter_wkwebview/PreferencesProxyAPIDelegate.swift":
+  object: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/PreferencesProxyAPIDelegate.o"
+  diagnostics: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/PreferencesProxyAPIDelegate.dia"
+  const-values: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/PreferencesProxyAPIDelegate.swiftconstvalues"
+  dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/PreferencesProxyAPIDelegate.d"
+  swift-dependencies: "/Users/patryk/Documents/Code/NautinerOS_mess_tablet/build/macos/Build/Intermediates.noindex/Pods.build/Debug/webview_flutter_wkwebview.build/Objects-normal/arm64/PreferencesProxyAPIDelegate.swiftdeps"

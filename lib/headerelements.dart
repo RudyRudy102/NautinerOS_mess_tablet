@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'models/weather_model.dart';
 import 'services/language_service.dart';
 
@@ -26,6 +27,7 @@ class HeaderElements {
   final VoidCallback toggleNightMode;
   final VoidCallback playClickSound;
   final Function(int) navigateToPage;
+  final Color Function(bool) getInterfaceIconColor;
 
   const HeaderElements({
     required this.weatherData,
@@ -42,9 +44,10 @@ class HeaderElements {
     required this.toggleNightMode,
     required this.playClickSound,
     required this.navigateToPage,
+    required this.getInterfaceIconColor,
   });
 
-  // Górny pasek z tłem Outline.png
+  // Górny pasek z tłem outline.svg
   Widget buildTopBar({
     required double buttonScale,
     required double verticalOffset,
@@ -53,16 +56,19 @@ class HeaderElements {
     return Positioned(
       top: verticalOffset,
       left: horizontalOffset,
-      child: Container(
+      child: SizedBox(
         width: 1920 * buttonScale,
         height: 162 * buttonScale,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/Outline.png"),
-            fit: BoxFit.fill,
+        child: SvgPicture.asset(
+          "assets/images/outline.svg",
+          width: 1920 * buttonScale,
+          height: 162 * buttonScale,
+          colorFilter: ColorFilter.mode(
+            getInterfaceIconColor(true),
+            BlendMode.srcIn,
           ),
+          fit: BoxFit.fill,
         ),
-        child: Stack(),
       ),
     );
   }
@@ -215,7 +221,6 @@ class HeaderElements {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 28,
-                                  fontFamily: 'Roboto',
                                   fontWeight: FontWeight.w700,
                                   height: 1.21,
                                   letterSpacing: -0.40,
@@ -233,7 +238,6 @@ class HeaderElements {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 48,
-                                fontFamily: 'Roboto',
                                 fontWeight: FontWeight.w600,
                                 height: 0.71,
                                 letterSpacing: -0.40,
@@ -273,7 +277,6 @@ class HeaderElements {
                                       style: TextStyle(
                                         color: Colors.black,
                                         fontSize: 34,
-                                        fontFamily: 'Roboto',
                                         fontWeight: FontWeight.w600,
                                         height: 1.21,
                                         letterSpacing: 0.60,
@@ -297,75 +300,56 @@ class HeaderElements {
     );
   }
 
-  // Ikona pogody
-  Widget buildWeatherIcon({
+  // Pogoda (ikona + temperatura)
+  Widget buildWeatherDisplay({
     required double buttonScale,
     required double verticalOffset,
     required double horizontalOffset,
   }) {
     return Positioned(
-      top: verticalOffset + 40 * buttonScale,
+      top: verticalOffset + 35 * buttonScale,
       left: horizontalOffset + 520 * buttonScale,
       child: GestureDetector(
         onTap: () {
           playClickSound();
           navigateToPage(1);
         },
-        child: Icon(
-          weatherData?.getWeatherIcon() ?? Icons.wb_sunny,
-          color: weatherData?.getIconColor() ?? Colors.yellow,
-          size: 60 * buttonScale,
-        ),
-      ),
-    );
-  }
-
-  // Temperatura
-  Widget buildTemperatureDisplay({
-    required double buttonScale,
-    required double verticalOffset,
-    required double horizontalOffset,
-  }) {
-    return Positioned(
-      top: verticalOffset + 40 * buttonScale,
-      left: horizontalOffset + 570 * buttonScale,
-      child: GestureDetector(
-        onTap: () {
-          playClickSound();
-          navigateToPage(1);
-        },
-        child: SizedBox(
-          width: 130 * buttonScale,
-          height: 60 * buttonScale,
-          child: Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: weatherData?.temperature.toStringAsFixed(0) ?? '--',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 48 * buttonScale,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w600,
-                    height: 0.85,
-                    letterSpacing: -0.40,
-                  ),
-                ),
-                TextSpan(
-                  text: '°C',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 48 * buttonScale,
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w400,
-                    height: 0.85,
-                    letterSpacing: -0.40,
-                  ),
-                ),
-              ],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(
+              weatherData?.getWeatherIcon() ?? Icons.wb_sunny,
+              color: weatherData?.getIconColor() ?? Colors.yellow,
+              size: 60 * buttonScale,
             ),
-            textAlign: TextAlign.center,
-          ),
+            SizedBox(width: 10 * buttonScale),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: weatherData?.temperature.toStringAsFixed(0) ?? '--',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 48 * buttonScale,
+                      fontWeight: FontWeight.w600,
+                      height: 1.0,
+                      letterSpacing: -0.40,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '°C',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 48 * buttonScale,
+                      fontWeight: FontWeight.w400,
+                      height: 1.0,
+                      letterSpacing: -0.40,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -457,15 +441,8 @@ class HeaderElements {
           height: height,
         ),
 
-        // Ikona pogody
-        buildWeatherIcon(
-          buttonScale: buttonScale,
-          verticalOffset: verticalOffset,
-          horizontalOffset: horizontalOffset,
-        ),
-
-        // Temperatura
-        buildTemperatureDisplay(
+        // Ikona pogody i temperatura
+        buildWeatherDisplay(
           buttonScale: buttonScale,
           verticalOffset: verticalOffset,
           horizontalOffset: horizontalOffset,

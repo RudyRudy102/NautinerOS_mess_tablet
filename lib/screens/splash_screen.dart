@@ -33,7 +33,6 @@ class SplashScreen extends StatelessWidget {
                     child: Text(
                       'Witaj na pokładzie!',
                       style: TextStyle(
-                        fontFamily: 'SourceSansPro',
                         fontSize: 50,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -49,7 +48,6 @@ class SplashScreen extends StatelessWidget {
                     child: Text(
                       'Powered by YachtOS 25 Śniardwy',
                       style: TextStyle(
-                        fontFamily: 'SourceSansPro',
                         fontSize: 25,
                         color: Colors.white.withOpacity(0.9),
                       ),

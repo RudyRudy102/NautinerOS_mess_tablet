@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 
 class WLEDService {
   String _ip;
-  String _secondaryIp = '';
+  String _secondaryIp;
   final int _port;
 
-  WLEDService({required String ip, int port = 80})
+  WLEDService(
+      {required String ip, String secondaryIp = '192.168.1.133', int port = 80})
       : _ip = ip,
+        _secondaryIp = secondaryIp,
         _port = port;
 
   String get ip => _ip;

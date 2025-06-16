@@ -54,5 +54,11 @@
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
 		<true/>
 	</dict>
+	
+	<!-- Uprawnienia do lokalizacji -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Aplikacja potrzebuje dostępu do lokalizacji aby pobierać aktualne dane pogodowe dla Twojej pozycji.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Aplikacja potrzebuje dostępu do lokalizacji aby pobierać aktualne dane pogodowe dla Twojej pozycji.</string>
 </dict>
 </plist>
