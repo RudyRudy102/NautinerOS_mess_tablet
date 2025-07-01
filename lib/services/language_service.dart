@@ -19,6 +19,13 @@ class LanguageService {
       'grey_water_topic': 'Grey water topic',
       'black_water_topic': 'Black water topic',
       'fuel_topic': 'Fuel topic',
+      'system_settings': 'System Settings',
+      'auto_startup': 'Auto Startup',
+      'kiosk_mode': 'Kiosk Mode',
+      'auto_startup_enabled': 'Auto-start enabled',
+      'auto_startup_disabled': 'Auto-start disabled',
+      'kiosk_mode_enabled': 'Kiosk mode enabled',
+      'kiosk_mode_disabled': 'Kiosk mode disabled',
     },
     'pl': {
       'tanks': 'Zbiorniki',
@@ -31,6 +38,13 @@ class LanguageService {
       'grey_water_topic': 'Temat wody szarej',
       'black_water_topic': 'Temat fekaliów',
       'fuel_topic': 'Temat paliwa',
+      'system_settings': 'Ustawienia systemu',
+      'auto_startup': 'Automatyczne uruchamianie',
+      'kiosk_mode': 'Tryb kiosk',
+      'auto_startup_enabled': 'Auto-start włączony',
+      'auto_startup_disabled': 'Auto-start wyłączony',
+      'kiosk_mode_enabled': 'Tryb kiosk włączony',
+      'kiosk_mode_disabled': 'Tryb kiosk wyłączony',
     },
   };
 
